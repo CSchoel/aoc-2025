@@ -1,0 +1,9 @@
+[package]
+authors = ["Christopher Schölzel"]
+name = "day01"
+version = "0.1.0"
+edition = "2024"
+license-file = "../LICENSE"
+publish = false # prevent accidentally publishing the package
+
+[dependencies]
