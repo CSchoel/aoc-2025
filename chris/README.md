@@ -29,6 +29,14 @@ The relevant user settings that I changed are the following:
 }
 ```
 
+Unfortunately, the `rust-analyzer` extension can't handle workspaces without a top-level `Cargo.toml` file.
+While it is possible to just add a `Cargo.toml` that links to the individual Rust packages, it's cleaner to just open each day in a separate workspace.
+To facilitate this, I've created a small script that can create the workspace files for you:
+
+```bash
+chris/open_workspace.sh day01
+```
+
 ## Compiling and running an existing solution
 
 Each exercise will be a separate [Cargo](https://doc.rust-lang.org/cargo/) package.
