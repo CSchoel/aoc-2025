@@ -1,0 +1,8 @@
+# Output directories
+target
+
+# Lock file for cargo
+Cargo.lock
+
+# Generated workspace files
+workspaces
