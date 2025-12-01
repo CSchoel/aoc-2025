@@ -1,15 +1,15 @@
 use std::fs;
 use std::path::Path;
 
-fn parse_input(input: String) -> Vec<(char, u8)> {
-    let mut vector: Vec<(char, u8)> = Vec::new();
+fn parse_input(input: String) -> Vec<(char, u16)> {
+    let mut vector: Vec<(char, u16)> = Vec::new();
     for l in input.lines() {
         let mut chars = l.trim().chars();
         let direction = match chars.next() {
             Some(c) => c,
             None => continue, // ignore empty lines
         };
-        let number: u8 = match chars.collect::<String>().parse::<u8>() {
+        let number: u16 = match chars.collect::<String>().parse::<u16>() {
             Ok(x) => x,
             Err(error) => panic!("Could not parse line: {l}\nError: {error}"),
         };
@@ -18,7 +18,7 @@ fn parse_input(input: String) -> Vec<(char, u8)> {
     vector
 }
 
-fn count_zero_rests(instructions: Vec<(char, u8)>) -> i16 {
+fn count_zero_rests(instructions: Vec<(char, u16)>) -> i16 {
     let mut dial: i16 = 50;
     let mut zeros = 0;
     for (d, x) in instructions {
