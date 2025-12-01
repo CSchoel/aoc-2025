@@ -26,7 +26,19 @@ fn main() {
     let input_path: &Path = Path::new("input.txt");
     let contents = fs::read_to_string(input_path).expect("Test");
     let data = parse_input(contents);
+    let mut dial: i16 = 50;
+    let mut zeros = 0;
     for (d, x) in data {
-        println!("{:?} {:?}", d, x)
+        dial += match d {
+            'R' => x as i16,
+            'L' => -(x as i16),
+            _ => panic!("Incorrect direction character: {d}"),
+        };
+        dial = dial.rem_euclid(100);
+        if dial == 0 {
+            zeros += 1;
+        }
+        println!("Dial: {dial}");
     }
+    println!("{zeros} zero crossings found!")
 }
