@@ -16,7 +16,7 @@ fn main() {
             Some(c) => c,
             None => continue, // ignore empty lines
         };
-        let number: u32 = match chars.collect::<String>().parse::<u32>() {
+        let number: u8 = match chars.collect::<String>().parse::<u8>() {
             Ok(x) => x,
             Err(error) => panic!("Could not parse line: {l}\nError: {error}"),
         };
