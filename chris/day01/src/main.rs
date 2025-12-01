@@ -1,13 +1,26 @@
 //! Solves day 1 of Advent of Code 2025
+use core::fmt;
 use core::num::Saturating;
 use core::num::Wrapping;
 use core::ops::Div as _;
 use std::fs;
 use std::path::Path;
 
+#[derive(Debug, Clone)]
+struct InputParseError<'a> {
+    reason: &'a str,
+}
+
+impl<'a> fmt::Display for InputParseError<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let reason = self.reason;
+        write!(f, "Failed to parse puzzle input.\nReason: {reason}")
+    }
+}
+
 /// Parses input for day1 puzzles into a vector containing the direction
 /// character (`'L'` or `'R'`) and the number of ticks.
-fn parse_input(input: &str) -> Vec<(char, u16)> {
+fn parse_input(input: &str) -> Result<Vec<(char, u16)>, InputParseError> {
     let mut vector: Vec<(char, u16)> = Vec::new();
     for line in input.lines() {
         let mut chars = line.trim().chars();
@@ -17,17 +30,21 @@ fn parse_input(input: &str) -> Vec<(char, u16)> {
         };
         let number: u16 = match chars.collect::<String>().parse::<u16>() {
             Ok(x) => x,
-            Err(error) => panic!("Could not parse line: {line}\nError: {error}"),
+            Err(_) => {
+                return Err(InputParseError {
+                    reason: "Wrong number format: {line}",
+                });
+            }
         };
         vector.push((direction, number));
     }
-    vector
+    Ok(vector)
 }
 
 /// Counts zero crossings for part two of the puzzle.
 /// More specifically: This counts how often a tick reaches zero when the dial
 /// is turned, also including multiple 360° turns.
-fn count_zero_crossings(instructions: Vec<(char, u16)>) -> Saturating<u16> {
+fn count_zero_crossings(instructions: Vec<(char, u16)>) -> u16 {
     let mut dial: Wrapping<i16> = Wrapping(50);
     let mut zero_crossings: Saturating<u16> = Saturating(0);
     for (d, x) in instructions {
@@ -51,27 +68,27 @@ fn count_zero_crossings(instructions: Vec<(char, u16)>) -> Saturating<u16> {
         dial = Wrapping((dial + remaining).0.rem_euclid(100));
         // println!("Dial: {dial}, Zero crossings: {zero_crossings}");
     }
-    zero_crossings
+    zero_crossings.0
 }
 
 /// Counts how often the dial ends up at zero after a turn instruction.
-#[allow(dead_code)]
+#[expect(dead_code, reason = "Solution for part 1, superseded by part 2")]
 fn count_zero_rests(instructions: Vec<(char, u16)>) -> i16 {
-    let mut dial: i16 = 50;
-    let mut zeros = 0;
-    for (d, x) in instructions {
-        dial += match d {
-            'R' => x as i16,
-            'L' => -(x as i16),
-            _ => panic!("Incorrect direction character: {d}"),
+    let mut dial: Wrapping<i16> = Wrapping(50);
+    let mut zeros: Saturating<i16> = Saturating(0);
+    for (dir, x) in instructions {
+        dial += match dir {
+            'R' => Wrapping(x.cast_signed()),
+            'L' => -Wrapping(x.cast_signed()),
+            _ => panic!("Incorrect direction character: {dir}"),
         };
-        dial = dial.rem_euclid(100);
-        if dial == 0 {
+        dial = Wrapping(dial.0.rem_euclid(100));
+        if dial == Wrapping(0) {
             zeros += 1;
         }
-        println!("Dial: {dial}");
+        // println!("Dial: {dial}");
     }
-    zeros
+    zeros.0
 }
 
 /// Loads the file `input.txt` and prints the puzzle solution.
@@ -79,6 +96,6 @@ fn main() {
     let input_path: &Path = Path::new("input.txt");
     let contents = fs::read_to_string(input_path).expect("Test");
     let data = parse_input(&contents);
-    let zeros = count_zero_crossings(data);
+    let zeros = count_zero_crossings(data.expect("Parser error"));
     println!("{zeros} zero crossings found!")
 }
