@@ -16,7 +16,6 @@ nursery = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
 restriction = { level = "warn", priority = -1 }
 # Specific high-priority lints - deny the worst offenders
-single_call_fn = "allow"  # for AoC we will write a lot of single-use functions
 unwrap_used = "deny"
 expect_used = "deny"
 panic = "deny"
@@ -26,3 +25,6 @@ dbg_macro = "deny"
 print_stdout = "warn"
 print_stderr = "warn"
 missing_docs_in_private_items = "warn"
+# relax where needed
+single_call_fn = "allow"  # for AoC we will write a lot of single-use functions
+implicit_return = "allow"  # otherwise clippy complains both if return is there and not
