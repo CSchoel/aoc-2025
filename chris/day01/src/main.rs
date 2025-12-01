@@ -5,12 +5,9 @@ use std::num::ParseIntError;
 use std::path::Path;
 use std::string;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let input_path: &Path = Path::new("input.txt");
-    println!("{}", input_path.display());
-    let contents = fs::read_to_string(input_path).expect("Test");
-    for l in contents.lines() {
+fn parse_input(input: String) -> Vec<(char, u8)> {
+    let mut vector: Vec<(char, u8)> = Vec::new();
+    for l in input.lines() {
         let mut chars = l.trim().chars();
         let direction = match chars.next() {
             Some(c) => c,
@@ -20,6 +17,16 @@ fn main() {
             Ok(x) => x,
             Err(error) => panic!("Could not parse line: {l}\nError: {error}"),
         };
-        println!("{:?} {:?}", direction, number);
+        vector.push((direction, number));
+    }
+    vector
+}
+
+fn main() {
+    let input_path: &Path = Path::new("input.txt");
+    let contents = fs::read_to_string(input_path).expect("Test");
+    let data = parse_input(contents);
+    for (d, x) in data {
+        println!("{:?} {:?}", d, x)
     }
 }
