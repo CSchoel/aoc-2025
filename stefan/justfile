@@ -1,0 +1,62 @@
+default:
+  just -l
+
+create *day:
+  #!/usr/bin/env bash
+  set -e
+  mkdir -p {{day}}/build
+  mkdir -p {{day}}/src
+  cat << 'EOF' > {{day}}/src/main.cpp
+    #include <iostream>
+    using namespace std;
+
+    int main() {
+        cout << "Hello {{day}}!" << endl;
+        return 0;
+    }
+  EOF
+
+  cat << 'EOF' > {{day}}/CMakeLists.txt
+    cmake_minimum_required(VERSION 3.25)
+
+    project({{day}} VERSION 0.0.1)
+
+    set(CMAKE_CXX_STANDARD 23)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
+    file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+        "src/*.cpp"
+        "src/*.hpp"
+    )
+
+    add_executable({{day}} ${SOURCES})
+
+    set(COMMON_WARNINGS
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wshadow
+    )
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options({{day}} PRIVATE
+            ${COMMON_WARNINGS}
+            -Werror
+        )
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        target_compile_options({{day}} PRIVATE
+            /W4
+            /WX
+        )
+    endif()
+  EOF
+
+build *day:
+  cd {{day}}/build && cmake .. && cmake --build .
+  # cmake --build {{day}}/build
+
+run *day: (build day)
+  # just build {{day}}
+  ./{{day}}/build/{{day}}
