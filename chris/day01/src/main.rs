@@ -1,6 +1,7 @@
 use std::env;
 use std::fmt::Error;
 use std::fs;
+use std::num::ParseIntError;
 use std::path::Path;
 use std::string;
 
@@ -13,9 +14,12 @@ fn main() {
         let mut chars = l.trim().chars();
         let direction = match chars.next() {
             Some(c) => c,
-            None => continue, // ignore empyt lines
+            None => continue, // ignore empty lines
         };
-        let number: String = chars.collect();
+        let number: u32 = match chars.collect::<String>().parse::<u32>() {
+            Ok(x) => x,
+            Err(error) => panic!("Could not parse line: {l}\nError: {error}"),
+        };
         println!("{:?} {:?}", direction, number);
     }
 }
