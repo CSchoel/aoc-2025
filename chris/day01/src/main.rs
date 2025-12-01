@@ -1,6 +1,9 @@
+//! Solves day 1 of Advent of Code 2025
 use std::fs;
 use std::path::Path;
 
+/// Parses input for day1 puzzles into a vector containing the direction
+/// character (`'L'` or `'R'`) and the number of ticks.
 fn parse_input(input: String) -> Vec<(char, u16)> {
     let mut vector: Vec<(char, u16)> = Vec::new();
     for l in input.lines() {
@@ -18,6 +21,9 @@ fn parse_input(input: String) -> Vec<(char, u16)> {
     vector
 }
 
+/// Counts zero crossings for part two of the puzzle.
+/// More specifically: This counts how often a tick reaches zero when the dial
+/// is turned, also including multiple 360° turns.
 fn count_zero_crossings(instructions: Vec<(char, u16)>) -> i16 {
     let mut dial: i16 = 50;
     let mut zero_crossings = 0;
@@ -43,6 +49,8 @@ fn count_zero_crossings(instructions: Vec<(char, u16)>) -> i16 {
     zero_crossings
 }
 
+/// Counts how often the dial ends up at zero after a turn instruction.
+#[allow(dead_code)]
 fn count_zero_rests(instructions: Vec<(char, u16)>) -> i16 {
     let mut dial: i16 = 50;
     let mut zeros = 0;
@@ -61,6 +69,7 @@ fn count_zero_rests(instructions: Vec<(char, u16)>) -> i16 {
     zeros
 }
 
+/// Loads the file `input.txt` and prints the puzzle solution.
 fn main() {
     let input_path: &Path = Path::new("input.txt");
     let contents = fs::read_to_string(input_path).expect("Test");

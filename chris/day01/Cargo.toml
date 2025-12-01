@@ -8,7 +8,7 @@ publish = false # prevent accidentally publishing the package
 
 [dependencies]
 
-[workspace.lints.clippy]
+[lints.clippy]
 # Extremely pedantic clippy lints workspace-wide - maximum annoyance!
 all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
@@ -16,6 +16,7 @@ nursery = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
 restriction = { level = "warn", priority = -1 }
 # Specific high-priority lints - deny the worst offenders
+single_call_fn = "allow"  # for AoC we will write a lot of single-use functions
 unwrap_used = "deny"
 expect_used = "deny"
 panic = "deny"
