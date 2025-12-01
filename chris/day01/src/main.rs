@@ -22,13 +22,10 @@ fn parse_input(input: String) -> Vec<(char, u8)> {
     vector
 }
 
-fn main() {
-    let input_path: &Path = Path::new("input.txt");
-    let contents = fs::read_to_string(input_path).expect("Test");
-    let data = parse_input(contents);
+fn count_zero_rests(instructions: Vec<(char, u8)>) -> i16 {
     let mut dial: i16 = 50;
     let mut zeros = 0;
-    for (d, x) in data {
+    for (d, x) in instructions {
         dial += match d {
             'R' => x as i16,
             'L' => -(x as i16),
@@ -40,5 +37,13 @@ fn main() {
         }
         println!("Dial: {dial}");
     }
+    zeros
+}
+
+fn main() {
+    let input_path: &Path = Path::new("input.txt");
+    let contents = fs::read_to_string(input_path).expect("Test");
+    let data = parse_input(contents);
+    let zeros = count_zero_rests(data);
     println!("{zeros} zero crossings found!")
 }
