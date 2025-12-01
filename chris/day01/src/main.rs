@@ -1,9 +1,5 @@
-use std::env;
-use std::fmt::Error;
 use std::fs;
-use std::num::ParseIntError;
 use std::path::Path;
-use std::string;
 
 fn parse_input(input: String) -> Vec<(char, u8)> {
     let mut vector: Vec<(char, u8)> = Vec::new();
