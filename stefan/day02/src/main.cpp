@@ -9,12 +9,13 @@ using namespace std;
 bool invalidId(long id) {
   // cout << "Checking: " << id << endl;
   auto idAsString = to_string(id);
-  regex immediateParam(R"(^(\d+)\1$)");
+  // regex immediateParam(R"(^(\d+)\1$)"); //for puzzle one
+  regex immediateParam(R"(^(\d+)\1+$)");
   smatch match;
   return regex_search(idAsString, match, immediateParam);
 }
 
-void solvePuzzleOne(string fileContent) {
+void solvePuzzle(string fileContent) {
   regex delimiterIds(",");
   sregex_token_iterator iteratorIds(fileContent.begin(), fileContent.end(),
                                     delimiterIds, -1);
@@ -48,6 +49,6 @@ int main() {
   if (file.is_open()) {
     getline(file, fileContent);
   }
-  solvePuzzleOne(fileContent);
+  solvePuzzle(fileContent);
   return 0;
 }
