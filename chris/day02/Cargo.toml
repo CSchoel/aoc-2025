@@ -1,6 +1,6 @@
 [package]
 authors = ["Christopher Schölzel"]
-name = "day01"
+name = "day02"
 version = "0.1.0"
 edition = "2024"
 license-file = "../LICENSE"
