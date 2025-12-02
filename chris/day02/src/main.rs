@@ -27,7 +27,7 @@ fn parse_input(text: &str) -> Result<Vec<(u64, u64)>, &str> {
 }
 
 fn divisors(num: u32) -> Vec<u32> {
-    (1..((num as f64).sqrt() as u32))
+    (1..((num as f64).sqrt().floor() as u32) + 1)
         .filter(|x| num % x == 0)
         .flat_map(|x| vec![x, num.div(x)])
         .collect::<Vec<u32>>()
@@ -45,7 +45,11 @@ fn is_invalid(num: u64, all_lengths: bool) -> bool {
     } else {
         divisors(str.len() as u32)
     };
+    println!("{:?}", pattern_lengths);
     for length in pattern_lengths {
+        if length as usize == str.len() {
+            continue;
+        }
         let chars = str.chars().collect::<Vec<char>>();
         let mut is_repeating = true;
         for start in (length as usize..str.len()).step_by(length as usize) {
@@ -55,6 +59,7 @@ fn is_invalid(num: u64, all_lengths: bool) -> bool {
             }
         }
         if is_repeating {
+            println!("Invalid: {num}, Lengt: {length}");
             return true;
         }
     }
