@@ -5,29 +5,31 @@ use std::{
 };
 
 /// Parses puzzle input for day 2
-fn parse_input(text: &str) -> Result<Vec<(u32, u32)>, &str> {
-    let mut result: Vec<(u32, u32)> = Vec::new();
+fn parse_input(text: &str) -> Result<Vec<(u64, u64)>, &str> {
+    let mut result: Vec<(u64, u64)> = Vec::new();
     for range in text.split(',') {
-        let mut split = range.split("-");
-        let start = match split.next().and_then(|s| s.parse::<u32>().ok()) {
+        println!("Range: {:?}", range);
+        let mut split = range.split('-');
+        let start = match split.next().and_then(|s| s.parse::<u64>().ok()) {
             Some(x) => x,
             None => return Err("Malformed line"),
         };
-        println!("{:?}", start);
-        let end = match split.next().and_then(|s| s.parse::<u32>().ok()) {
+        println!("Start: {:?}", start);
+        let end = match split.next().and_then(|s| s.parse::<u64>().ok()) {
             Some(x) => x,
             None => return Err("Malformed line"),
         };
         result.push((start, end));
-        println!("{:?}", end);
+        println!("End: {:?}", end);
     }
     Ok(result)
 }
 
 /// Find the sum of all invalid IDs
-fn sum_invalid_ids(data: Vec<(u32, u32)>) -> u32 {
-    let mut invalid: Saturating<u32> = Saturating(0);
+fn sum_invalid_ids(data: Vec<(u64, u64)>) -> u64 {
+    let mut invalid: Saturating<u64> = Saturating(0);
     for (start, end) in data {
+        println!("Start: {}, End: {}", start, end);
         for i in start..end + 1 {
             let str = i.to_string();
             if str.len() % 2 != 0 {
