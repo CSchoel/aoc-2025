@@ -26,23 +26,69 @@ fn parse_input(text: &str) -> Result<Vec<(u64, u64)>, &str> {
     Ok(result)
 }
 
+fn divisors(num: u32) -> Vec<u32> {
+    (1..((num as f64).sqrt().floor() as u32) + 1)
+        .filter(|x| num % x == 0)
+        .flat_map(|x| vec![x, num.div(x)])
+        .collect::<Vec<u32>>()
+}
+
+/// Tests if an ID is invalid
+fn is_invalid(num: u64, all_lengths: bool) -> bool {
+    let str = num.to_string();
+    let pattern_lengths = if !all_lengths {
+        if str.len() % 2 == 0 {
+            vec![2]
+        } else {
+            Vec::new()
+        }
+    } else {
+        divisors(str.len() as u32)
+    };
+    println!("{:?}", pattern_lengths);
+    for length in pattern_lengths {
+        if length as usize == str.len() {
+            continue;
+        }
+        let chars = str.chars().collect::<Vec<char>>();
+        let mut is_repeating = true;
+        for start in (length as usize..str.len()).step_by(length as usize) {
+            if !chars[start..(start + length as usize)].eq(&chars[0..length as usize]) {
+                is_repeating = false;
+                break;
+            }
+        }
+        if is_repeating {
+            println!("Invalid: {num}, Lengt: {length}");
+            return true;
+        }
+    }
+    false
+}
+
 /// Find the sum of all invalid IDs
-fn sum_invalid_ids(data: Vec<(u64, u64)>) -> u64 {
+fn sum_invalid_ids(data: Vec<(u64, u64)>, all_lengths: bool) -> u64 {
     let mut invalid: Saturating<u64> = Saturating(0);
     for (start, end) in data {
         println!("Start: {}, End: {}", start, end);
         for i in start..end + 1 {
-            let str = i.to_string();
-            if str.len() % 2 != 0 {
-                continue;
-            }
-            let (left, right) = str.split_at(str.len().div(2));
-            if left.eq(right) {
-                invalid += i;
+            if is_invalid(i, all_lengths) {
+                invalid += i
             }
         }
     }
     invalid.0
+}
+
+/// Find the sum of all invalid IDs only considering IDs which consist of
+/// two repeated patterns.
+fn sum_invalid_ids_half_length(data: Vec<(u64, u64)>) -> u64 {
+    sum_invalid_ids(data, false)
+}
+
+/// Find sum of all invalid IDs considering repeating patterns of any length.
+fn sum_invalid_ids_all_lengths(data: Vec<(u64, u64)>) -> u64 {
+    sum_invalid_ids(data, true)
 }
 
 /// Loads the file `input.txt` and prints the puzzle solution.
@@ -56,6 +102,6 @@ fn main() {
         Ok(x) => x,
         Err(msg) => panic!("Wrong input!"),
     };
-    let result = sum_invalid_ids(data);
+    let result = sum_invalid_ids_all_lengths(data);
     println!("Sum: {:?}", result);
 }
