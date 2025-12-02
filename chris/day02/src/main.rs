@@ -1,8 +1,9 @@
 //! Solves day 2 of Advent of Code 2025
 
-use std::{
-    collections::btree_map::Range, fs, num::Saturating, ops::Div, path::Path, process::exit,
-};
+use core::num::Saturating;
+use core::ops::Div as _;
+use std::fs;
+use std::path::Path;
 
 /// Parses puzzle input for day 2
 fn parse_input(text: &str) -> Result<Vec<(u64, u64)>, &str> {
