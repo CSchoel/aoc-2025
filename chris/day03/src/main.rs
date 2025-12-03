@@ -1,5 +1,6 @@
 //! Solution for day 3 of Advent of Code 2025
 use std::fs;
+use std::num::Saturating;
 use std::path::Path;
 use std::process::exit;
 
@@ -20,6 +21,30 @@ fn parse_input(text: &str) -> Vec<Vec<u8>> {
         result.push(batteries);
     }
     result
+}
+
+/// Compute max joltage
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(max_joltage(&vec![1,2,3,4]), 34)
+/// ```
+fn max_joltage(bank: &[u8]) -> u8 {
+    // find first digit
+    let first_range = bank.get(0..bank.len().saturating_sub(1));
+    let first = first_range.and_then(|rng| rng.iter().enumerate().max_by_key(|&(_, digit)| *digit));
+    let (first_idx, first_val) = match first {
+        Some((idx, val)) => (idx, val),
+        None => return 0,
+    };
+    let second_range = bank.get(first_idx..bank.len());
+    let second = second_range.and_then(|rng| rng.iter().max());
+    let second_val = match second {
+        Some(val) => *val,
+        None => return 0,
+    };
+    first_val.saturating_mul(10_u8).saturating_add(second_val)
 }
 
 fn main() {

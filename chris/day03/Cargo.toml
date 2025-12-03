@@ -7,6 +7,7 @@ license-file = "../LICENSE"
 publish = false # prevent accidentally publishing the package
 
 [dependencies]
+log = "0.4.29"
 
 [lints.clippy]
 # Extremely pedantic clippy lints workspace-wide - maximum annoyance!
@@ -28,3 +29,4 @@ missing_docs_in_private_items = "warn"
 # relax where needed
 single_call_fn = "allow"  # for AoC we will write a lot of single-use functions
 implicit_return = "allow"  # otherwise clippy complains both if return is there and not
+separated_literal_suffix = "allow"  # otherwise clippy complains about both non-underscore and underscore syntax
