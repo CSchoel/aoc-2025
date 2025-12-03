@@ -27,8 +27,8 @@ fn parse_input(text: &str) -> Vec<Vec<u8>> {
 /// # Examples
 ///
 /// ```
-/// assert_eq!(max_joltage(&[1, 2, 3, 4]), 34)
-/// assert_eq!(max_joltage(&[8, 2, 3, 9]), 89)
+/// assert_eq!(max_joltage(&[1, 2, 3, 4]), 34);
+/// assert_eq!(max_joltage(&[8, 2, 3, 9]), 89);
 /// ```
 fn max_joltage(bank: &[u8]) -> u8 {
     debug!("Calculating max joltage for {bank:?}");
