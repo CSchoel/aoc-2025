@@ -48,6 +48,7 @@ fn max_joltage(bank: &[u8]) -> u8 {
 }
 
 fn main() {
+    env_logger::init();
     let input_path: &Path = Path::new("input.txt");
     let contents: String = match fs::read_to_string(input_path) {
         Ok(str) => str,
@@ -59,4 +60,6 @@ fn main() {
     };
     let input = parse_input(&contents);
     info!("Parsed input: {input:?}");
+    let test = max_joltage(&[1, 2, 3, 4, 5]);
+    info!("Test output: {test}");
 }

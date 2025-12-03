@@ -7,6 +7,7 @@ license-file = "../LICENSE"
 publish = false # prevent accidentally publishing the package
 
 [dependencies]
+env_logger = "0.11.8"
 log = "0.4.29"
 
 [lints.clippy]
