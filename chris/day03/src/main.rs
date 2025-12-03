@@ -28,6 +28,7 @@ fn parse_input(text: &str) -> Vec<Vec<u8>> {
 ///
 /// ```
 /// assert_eq!(max_joltage(&[1, 2, 3, 4]), 34)
+/// assert_eq!(max_joltage(&[8, 2, 3, 9]), 89)
 /// ```
 fn max_joltage(bank: &[u8]) -> u8 {
     // find first digit
@@ -37,12 +38,13 @@ fn max_joltage(bank: &[u8]) -> u8 {
         Some((idx, val)) => (idx, val),
         None => return 0,
     };
-    let second_range = bank.get(first_idx..bank.len());
+    let second_range = bank.get(first_idx.saturating_add(1)..bank.len());
     let second = second_range.and_then(|rng| rng.iter().max());
     let second_val = match second {
         Some(val) => *val,
         None => return 0,
     };
+    debug!("Found max joltage {first_val}{second_val} for bank {bank:?}.");
     first_val.saturating_mul(10_u8).saturating_add(second_val)
 }
 /// Compute max joltage sum
@@ -65,6 +67,4 @@ fn main() {
     info!("Parsed input: {input:?}");
     let result = sum_max_joltages(&input);
     info!("Result: {result}");
-    // let test = max_joltage(&[8, 2, 3, 9]);
-    // info!("Test output: {test}");
 }
