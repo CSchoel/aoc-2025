@@ -1,6 +1,5 @@
 //! Solution for day 3 of Advent of Code 2025
 use std::fs;
-use std::num::Saturating;
 use std::path::Path;
 use std::process::exit;
 
@@ -28,7 +27,7 @@ fn parse_input(text: &str) -> Vec<Vec<u8>> {
 /// # Examples
 ///
 /// ```
-/// assert_eq!(max_joltage(&vec![1,2,3,4]), 34)
+/// assert_eq!(max_joltage(&[1, 2, 3, 4]), 34)
 /// ```
 fn max_joltage(bank: &[u8]) -> u8 {
     // find first digit
@@ -46,6 +45,10 @@ fn max_joltage(bank: &[u8]) -> u8 {
     };
     first_val.saturating_mul(10_u8).saturating_add(second_val)
 }
+/// Compute max joltage sum
+fn sum_max_joltages(input: &[Vec<u8>]) -> u16 {
+    input.iter().map(|x| u16::from(max_joltage(x))).sum()
+}
 
 fn main() {
     env_logger::init();
@@ -60,6 +63,8 @@ fn main() {
     };
     let input = parse_input(&contents);
     info!("Parsed input: {input:?}");
-    let test = max_joltage(&[1, 2, 3, 4, 5]);
-    info!("Test output: {test}");
+    let result = sum_max_joltages(&input);
+    info!("Result: {result}");
+    // let test = max_joltage(&[8, 2, 3, 9]);
+    // info!("Test output: {test}");
 }
