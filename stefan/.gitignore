@@ -1,2 +1,4 @@
 build/
+*.txt
+!CMakeLists.txt
 .cache/
