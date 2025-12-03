@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <fstream>
 #include <iostream>
@@ -5,7 +6,8 @@
 
 using namespace std;
 
-int getJoltageFromLine(string line) {
+//deprecated -> see getJoltageFromLineManyBatteries
+int getJoltageFromLineTwoBatteries(string line) {
   int firstValue = 0;
   int firstValueIndex = 0;
   int secondValue = 0;
@@ -33,13 +35,37 @@ int getJoltageFromLine(string line) {
   return stoi(joltageAsString);
 }
 
+long getJoltageFromLineManyBatteries(string line, int numberBatteriesNeeded) {
+  string joltageAsString = "";
+  auto lastFoundIndex = -1;
+  for (int i = 0; i < numberBatteriesNeeded; i++) {
+    auto highestValue = 0;
+    auto maxIndex = line.length() - (numberBatteriesNeeded - i);
+    size_t nextIndex = lastFoundIndex + 1;
+    while (nextIndex <= maxIndex) {
+      auto batteryValue = line[nextIndex] - '0';
+      if (batteryValue > highestValue) {
+        highestValue = batteryValue;
+        lastFoundIndex = nextIndex;
+      }
+      if (highestValue == 9) {
+        break;
+      }
+      nextIndex++;
+    }
+    joltageAsString += to_string(highestValue);
+    highestValue = 0;
+  }
+  return stol(joltageAsString);
+}
+
 int main() {
   ifstream file("day03/batteries.txt");
   string line;
-  int totalJoltage = 0;
+  long totalJoltage = 0;
   if (file.is_open()) {
     while (getline(file, line)) {
-      totalJoltage += getJoltageFromLine(line);
+      totalJoltage += getJoltageFromLineManyBatteries(line, 12); //for part one just use 2
     }
   }
   cout << totalJoltage << endl;
