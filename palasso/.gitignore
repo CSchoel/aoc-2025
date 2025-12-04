@@ -1,0 +1,7 @@
+# input files
+*input.txt
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class

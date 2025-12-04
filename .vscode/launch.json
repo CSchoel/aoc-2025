@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run solution by palasso",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "palasso/cli.py",
+            "args": [
+                // day
+                "4",
+                // part
+                "2",
+                // if ommitted will read sample input
+                // "--input"
+            ],
+            "console": "integratedTerminal",
+            "subProcess": false,
+            "justMyCode": true
+        },
+    ]
+}
