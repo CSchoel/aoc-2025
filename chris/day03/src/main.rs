@@ -37,6 +37,7 @@ fn max_joltage(bank: &[u8], num_active: u8) -> u64 {
     for remaining_batteries in (0..num_active).rev() {
         let search_range =
             bank.get(offset..bank.len().saturating_sub(usize::from(remaining_batteries)));
+        debug!("Search range: {search_range:?}");
         let first_highest = search_range.and_then(|rng| {
             rng.iter()
                 .enumerate()
@@ -49,11 +50,12 @@ fn max_joltage(bank: &[u8], num_active: u8) -> u64 {
         };
         debug!("Select battery to activate: Index {highest_idx}, value {highest_val}");
         active.push(*highest_val);
-        offset = highest_idx.saturating_add(1);
+        offset = offset.saturating_add(highest_idx).saturating_add(1);
     }
+    debug!("Active battery values: {active:?}");
     let max_joltage = match active
         .iter()
-        .map(|x| *x as char)
+        .map(u8::to_string)
         .collect::<String>()
         .parse::<u64>()
     {
