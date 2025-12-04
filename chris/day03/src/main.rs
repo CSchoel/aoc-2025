@@ -91,6 +91,6 @@ fn main() {
     //     9, 2, 9, 2, 4, 7, 6, 7, 7, 6,
     // ]);
     // info!("Test result: {test}");
-    let result = sum_max_joltages(&input, 2);
+    let result = sum_max_joltages(&input, 12);
     info!("Result: {result}");
 }
