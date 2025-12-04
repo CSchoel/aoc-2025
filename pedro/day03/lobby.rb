@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-num_batteries = 12
+TOTAL_BATTERIES = 12
 
-joltages = File.readlines("input.txt", chomp: true).map do |line|
-  digits = line.chars.map(&:to_i)
-  num_batteries.downto(1).map do |i|
-    max_num, max_index = digits[0..-i].each_with_index.max_by { |num, _index| num }
-    digits = digits[(max_index + 1)..-1]
-    max_num
+total_joltage = File.readlines("input.txt", chomp: true).map do |line|
+  joltages = line.chars.map(&:to_i)
+  TOTAL_BATTERIES.downto(1).map do |remaining_batteries|
+    max_joltage, max_index = joltages[0..-remaining_batteries].each_with_index.max_by { |num, _index| num }
+    joltages.slice!(0, max_index.next)
+    max_joltage
   end.join.to_i
-end
+end.sum
 
-p "Total: #{joltages.sum}"
+p "Total: #{total_joltage}"
