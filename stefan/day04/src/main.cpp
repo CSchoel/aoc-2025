@@ -14,6 +14,7 @@ struct Cordinates {
 
 void countRolls(vector<string> grid) {
   long rollCounter = 0;
+  bool rollCounterUpdated = false;
   for (size_t i = 0; i < grid.size(); i++) {
     for (size_t j = 0; j < grid[i].length(); j++) {
       auto charAt = grid[i][j];
@@ -39,9 +40,15 @@ void countRolls(vector<string> grid) {
         }
         if (surroundingRolleCounter < 4) {
           rollCounter++;
-          // grid[i][j] = 'x';
+          rollCounterUpdated = true;
+          grid[i][j] = 'x'; //dont do this to get solution for puzzle 1
         }
       }
+    }
+    // not needed for puzzle 1
+    if (rollCounterUpdated) {
+      i = -1;
+      rollCounterUpdated = false;
     }
   }
   cout << rollCounter << endl;
