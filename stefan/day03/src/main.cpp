@@ -67,6 +67,7 @@ int main() {
     while (getline(file, line)) {
       totalJoltage += getJoltageFromLineManyBatteries(line, 12); //for part one just use 2
     }
+    file.close();
   }
   cout << totalJoltage << endl;
   return 0;

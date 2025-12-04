@@ -47,6 +47,7 @@ int main() {
   string fileContent = "";
   if (file.is_open()) {
     getline(file, fileContent);
+    file.close();
   }
   solvePuzzle(fileContent);
   return 0;
