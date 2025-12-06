@@ -96,7 +96,6 @@ void getSolutionSecondProblem(ifstream &file) {
     }
   }
   if (!numbers.empty() && !columnInformations.empty()) {
-
     int currentColumnInformationPosition = columnInformations.size() - 1;
     const int maxLineLengthIndex = numbers[0].size() -1;
     int charCounter = 0;
@@ -104,7 +103,6 @@ void getSolutionSecondProblem(ifstream &file) {
     ColumnInformation* ci =
         &columnInformations[currentColumnInformationPosition];
 
-    // loop position right to left
     for (int i = maxLineLengthIndex; i >= 0; i--) {
       if (charCounter == ci->maxLengthNunmber) {
         ci = &columnInformations[--currentColumnInformationPosition];
@@ -115,14 +113,11 @@ void getSolutionSecondProblem(ifstream &file) {
       for (const string &row : numbers) {
         number.push_back(row[i]);
       }
-      // cout << number << ci.op << endl;
-      // number complete
       ci->numbers.push_back(stol(number));
       charCounter++;
     }
   }
   for (const ColumnInformation &ci : columnInformations) {
-    cout << ci.op << " " << ci.maxLengthNunmber << " " << ci.numbers.size() << endl;
     long subtotal = 0;
     for (long n : ci.numbers) {
       if (ci.op == '+') {
@@ -135,11 +130,8 @@ void getSolutionSecondProblem(ifstream &file) {
         }
       }
     }
-    cout << "Subtotal: " << subtotal << endl;
     finalSum += subtotal;
   }
-  // check char if number by regex
-  // put each single number in a column safe
   cout << finalSum << endl;
 }
 
