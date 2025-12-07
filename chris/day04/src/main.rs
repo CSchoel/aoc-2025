@@ -40,6 +40,28 @@ impl CharMatrix {
         self.at(urow, ucol)
     }
 
+    /// Deletes movable stacks
+    fn delete_movable(&self) -> Self {
+        let new_mat = self
+            .matrix
+            .iter()
+            .enumerate()
+            .map(|(idx, chr)| {
+                let (row, col) = (idx.div_euclid(self.columns), idx.rem_euclid(self.columns));
+                let neighbors = self.neighbors_at(row, col);
+                if *chr == '@' && neighbors < 4 {
+                    '.'
+                } else {
+                    *chr
+                }
+            })
+            .collect();
+        Self {
+            columns: self.columns,
+            matrix: new_mat,
+        }
+    }
+
     /// Count the neighbors at a position
     fn neighbors_at(&self, row: usize, col: usize) -> usize {
         (-1_isize..2_isize)
