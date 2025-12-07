@@ -41,7 +41,9 @@ impl CharMatrix {
     }
 
     /// Deletes movable stacks
-    fn delete_movable(&self) -> Self {
+    /// Returns updated matrix and number of stacks removed
+    fn delete_movable(&self) -> (Self, usize) {
+        let mut counter: usize = 0;
         let new_mat = self
             .matrix
             .iter()
@@ -50,16 +52,20 @@ impl CharMatrix {
                 let (row, col) = (idx.div_euclid(self.columns), idx.rem_euclid(self.columns));
                 let neighbors = self.neighbors_at(row, col);
                 if *chr == '@' && neighbors < 4 {
+                    counter += 1;
                     '.'
                 } else {
                     *chr
                 }
             })
             .collect();
-        Self {
-            columns: self.columns,
-            matrix: new_mat,
-        }
+        (
+            Self {
+                columns: self.columns,
+                matrix: new_mat,
+            },
+            counter,
+        )
     }
 
     /// Count the neighbors at a position
@@ -103,6 +109,10 @@ fn parse_input(text: &str) -> Option<CharMatrix> {
 
 /// Solves part 1 of the puzzle
 /// This findes movable stacks ('@'), that is stacks that have less than 4 neighbors.
+#[expect(
+    dead_code,
+    reason = "This is the solution for part 1, we only call part 2 but want to keep this."
+)]
 fn count_movable(mat: &CharMatrix) -> usize {
     (0..mat.matrix.len())
         .map(|idx| (idx.div_euclid(mat.columns), idx.rem_euclid(mat.columns)))
@@ -117,6 +127,22 @@ fn count_movable(mat: &CharMatrix) -> usize {
             neighbors < 4
         })
         .count()
+}
+
+/// Solves part 2
+/// Count movable stacks and remove them, repeat until no more can be removed.
+fn count_and_delete_movable(mat: &CharMatrix) -> usize {
+    // note: Duplication of delete_movable call is needed because the matrix we begin with
+    // is borrowed but the matrices we then generate are owned by us
+    let (mut cur_mat, mut deleted) = mat.delete_movable();
+    debug!("Deleted {deleted} stacks.");
+    let mut movable = Saturating(deleted);
+    while deleted > 0 {
+        (cur_mat, deleted) = cur_mat.delete_movable();
+        debug!("Deleted {deleted} stacks.");
+        movable += deleted;
+    }
+    movable.0
 }
 
 #[expect(clippy::print_stdout, reason = "This is a CLI function")]
@@ -136,6 +162,6 @@ fn main() {
         exit(1);
     });
     info!("Parsed input: {input:?}");
-    let result = count_movable(&input);
+    let result = count_and_delete_movable(&input);
     println!("Result: {result}");
 }
