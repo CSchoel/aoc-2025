@@ -59,7 +59,7 @@ fn parse_input(text: &str) -> Option<CharMatrix> {
 /// Solves part 1 of the puzzle
 /// This findes movable stacks ('@'), that is stacks that have less than 4 neighbors.
 fn count_movable(mat: &CharMatrix) -> usize {
-    (1..mat.matrix.len())
+    (0..mat.matrix.len())
         .map(|idx| (idx.div_euclid(mat.columns), idx.rem_euclid(mat.columns)))
         .filter(|&(row, col)| mat.at(row, col) == Some('@'))
         .filter(|&(row, col)| {
