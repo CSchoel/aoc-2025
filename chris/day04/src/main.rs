@@ -80,7 +80,7 @@ fn count_movable(mat: &CharMatrix) -> usize {
                 })
                 .filter(|chr| *chr == '@')
                 .count();
-            neighbors <= 4
+            neighbors < 4
         })
         .count()
 }
