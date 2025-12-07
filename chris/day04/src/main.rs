@@ -43,7 +43,7 @@ impl CharMatrix {
     /// Deletes movable stacks
     /// Returns updated matrix and number of stacks removed
     fn delete_movable(&self) -> (Self, usize) {
-        let mut counter: usize = 0;
+        let mut counter: Saturating<usize> = Saturating(0);
         let new_mat = self
             .matrix
             .iter()
@@ -64,7 +64,7 @@ impl CharMatrix {
                 columns: self.columns,
                 matrix: new_mat,
             },
-            counter,
+            counter.0,
         )
     }
 
