@@ -108,7 +108,7 @@ fn parse_input(text: &str) -> Option<CharMatrix> {
 }
 
 /// Solves part 1 of the puzzle
-/// This findes movable stacks ('@'), that is stacks that have less than 4 neighbors.
+/// This finds movable stacks ('@'), that is stacks that have less than 4 neighbors.
 #[expect(
     dead_code,
     reason = "This is the solution for part 1, we only call part 2 but want to keep this."
