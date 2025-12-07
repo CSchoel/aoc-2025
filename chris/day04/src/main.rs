@@ -40,6 +40,29 @@ impl CharMatrix {
         self.at(urow, ucol)
     }
 
+    /// Count the neighbors at a position
+    fn neighbors_at(&self, row: usize, col: usize) -> usize {
+        (-1_isize..2_isize)
+            .flat_map(|dr| {
+                (-1_isize..2_isize).map(move |dc| {
+                    if dr == 0 && dc == 0 {
+                        return '.';
+                    }
+                    let neighbor_row = match isize::try_from(row) {
+                        Ok(idx) => idx.saturating_add(dr),
+                        Err(_) => return '.',
+                    };
+                    let neighbor_col = match isize::try_from(col) {
+                        Ok(idx) => idx.saturating_add(dc),
+                        Err(_) => return '.',
+                    };
+                    self.at_signed(neighbor_row, neighbor_col).unwrap_or('.')
+                })
+            })
+            .filter(|chr| *chr == '@')
+            .count()
+    }
+
     /// Get number of rows
     fn rows(&self) -> usize {
         self.matrix.len().checked_div(self.columns).unwrap_or(0)
@@ -63,25 +86,7 @@ fn count_movable(mat: &CharMatrix) -> usize {
         .map(|idx| (idx.div_euclid(mat.columns), idx.rem_euclid(mat.columns)))
         .filter(|&(row, col)| mat.at(row, col) == Some('@'))
         .filter(|&(row, col)| {
-            let neighbors = (-1_isize..2_isize)
-                .flat_map(|dr| {
-                    (-1_isize..2_isize).map(move |dc| {
-                        if dr == 0 && dc == 0 {
-                            return '.';
-                        }
-                        let neighbor_row = match isize::try_from(row) {
-                            Ok(idx) => idx.saturating_add(dr),
-                            Err(_) => return '.',
-                        };
-                        let neighbor_col = match isize::try_from(col) {
-                            Ok(idx) => idx.saturating_add(dc),
-                            Err(_) => return '.',
-                        };
-                        mat.at_signed(neighbor_row, neighbor_col).unwrap_or('.')
-                    })
-                })
-                .filter(|chr| *chr == '@')
-                .count();
+            let neighbors = mat.neighbors_at(row, col);
             if neighbors < 4 {
                 debug!(
                     "Found movable position at row {row}, col {col} with {neighbors} neighbors."
