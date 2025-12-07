@@ -31,3 +31,4 @@ missing_docs_in_private_items = "warn"
 single_call_fn = "allow"  # for AoC we will write a lot of single-use functions
 implicit_return = "allow"  # otherwise clippy complains both if return is there and not
 separated_literal_suffix = "allow"  # otherwise clippy complains about both non-underscore and underscore syntax
+question_mark_used = "allow"  # again, this is just a convention where we have to decide for one side

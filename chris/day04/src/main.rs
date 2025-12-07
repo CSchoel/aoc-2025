@@ -1,13 +1,8 @@
 //! Solve day 4 of Advent of Code 2025
-use std::{
-    fs,
-    num::Saturating,
-    ops::{Div, Rem},
-    path::Path,
-    process::exit,
-};
+use core::num::Saturating;
+use std::{fs, path::Path, process::exit};
 
-use log::{debug, error, info};
+use log::{error, info};
 
 /// Represents a 2D map built from characters
 #[derive(Debug)]
@@ -36,7 +31,13 @@ impl CharMatrix {
         if row < 0 || col < 0 {
             return None;
         }
-        self.at(row as usize, col as usize)
+        let Ok(urow) = usize::try_from(row) else {
+            return None;
+        };
+        let Ok(ucol) = usize::try_from(col) else {
+            return None;
+        };
+        self.at(urow, ucol)
     }
 
     /// Get number of rows
