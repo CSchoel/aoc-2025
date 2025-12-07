@@ -2,7 +2,7 @@
 use core::num::Saturating;
 use std::{fs, path::Path, process::exit};
 
-use log::{error, info};
+use log::{debug, error, info};
 
 /// Represents a 2D map built from characters
 #[derive(Debug)]
@@ -60,6 +60,7 @@ fn parse_input(text: &str) -> Option<CharMatrix> {
 fn count_movable(mat: &CharMatrix) -> usize {
     (1..mat.matrix.len())
         .map(|idx| (idx.div_euclid(mat.columns), idx.rem_euclid(mat.columns)))
+        .filter(|&(row, col)| mat.at(row, col) == Some('@'))
         .filter(|&(row, col)| {
             let neighbors = (-1_isize..2_isize)
                 .flat_map(|dr| {
@@ -80,6 +81,11 @@ fn count_movable(mat: &CharMatrix) -> usize {
                 })
                 .filter(|chr| *chr == '@')
                 .count();
+            if neighbors < 4 {
+                debug!(
+                    "Found movable position at row {row}, col {col} with {neighbors} neighbors."
+                );
+            }
             neighbors < 4
         })
         .count()
