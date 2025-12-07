@@ -41,8 +41,8 @@ impl CharMatrix {
     }
 
     /// Get number of rows
-    const fn rows(&self) -> usize {
-        self.matrix.len().saturating_div(self.columns)
+    fn rows(&self) -> usize {
+        self.matrix.len().checked_div(self.columns).unwrap_or(0)
     }
 }
 
