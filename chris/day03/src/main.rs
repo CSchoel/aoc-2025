@@ -30,33 +30,45 @@ fn parse_input(text: &str) -> Vec<Vec<u8>> {
 /// assert_eq!(max_joltage(&[1, 2, 3, 4]), 34);
 /// assert_eq!(max_joltage(&[8, 2, 3, 9]), 89);
 /// ```
-fn max_joltage(bank: &[u8]) -> u8 {
+fn max_joltage(bank: &[u8], num_active: u8) -> u64 {
     debug!("Calculating max joltage for {bank:?}");
-    // find first digit
-    let first_range = bank.get(0..bank.len().saturating_sub(1));
-    let first = first_range.and_then(|rng| {
-        rng.iter()
-            .enumerate()
-            .rev()
-            .max_by_key(|&(_, digit)| *digit)
-    });
-    let (first_idx, first_val) = match first {
-        Some((idx, val)) => (idx, val),
-        None => return 0,
+    let mut offset = 0;
+    let mut active: Vec<u8> = Vec::new();
+    for remaining_batteries in (0..num_active).rev() {
+        let search_range =
+            bank.get(offset..bank.len().saturating_sub(usize::from(remaining_batteries)));
+        debug!("Search range: {search_range:?}");
+        let first_highest = search_range.and_then(|rng| {
+            rng.iter()
+                .enumerate()
+                .rev()
+                .max_by_key(|&(_, digit)| *digit)
+        });
+        let (highest_idx, highest_val) = match first_highest {
+            Some((idx, val)) => (idx, val),
+            None => return 0,
+        };
+        debug!("Select battery to activate: Index {highest_idx}, value {highest_val}");
+        active.push(*highest_val);
+        offset = offset.saturating_add(highest_idx).saturating_add(1);
+    }
+    debug!("Active battery values: {active:?}");
+    let max_joltage = match active
+        .iter()
+        .map(u8::to_string)
+        .collect::<String>()
+        .parse::<u64>()
+    {
+        Ok(max_val) => max_val,
+        Err(_) => return 0,
     };
-    debug!("First index: {first_idx}, First value: {first_val}");
-    let second_range = bank.get(first_idx.saturating_add(1)..bank.len());
-    let second = second_range.and_then(|rng| rng.iter().max());
-    let second_val = match second {
-        Some(val) => *val,
-        None => return 0,
-    };
-    debug!("Found max joltage {first_val}{second_val} for bank {bank:?}.");
-    first_val.saturating_mul(10_u8).saturating_add(second_val)
+    debug!("Found max joltage {max_joltage} for bank {bank:?}.");
+    max_joltage
 }
+
 /// Compute max joltage sum
-fn sum_max_joltages(input: &[Vec<u8>]) -> u16 {
-    input.iter().map(|x| u16::from(max_joltage(x))).sum()
+fn sum_max_joltages(input: &[Vec<u8>], num_active: u8) -> u64 {
+    input.iter().map(|x| max_joltage(x, num_active)).sum()
 }
 
 fn main() {
@@ -79,6 +91,6 @@ fn main() {
     //     9, 2, 9, 2, 4, 7, 6, 7, 7, 6,
     // ]);
     // info!("Test result: {test}");
-    let result = sum_max_joltages(&input);
+    let result = sum_max_joltages(&input, 12);
     info!("Result: {result}");
 }
