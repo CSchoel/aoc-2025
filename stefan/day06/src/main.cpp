@@ -136,7 +136,6 @@ void getSolutionSecondProblem(ifstream &file) {
 }
 
 int main() {
-  ColumnInformation ci;
   ifstream file("day06/problems.txt");
   getSolutionFirstProblem(file);
   file.clear();
