@@ -80,9 +80,8 @@
     "lsp": {
         "rust-analyzer": {
             "initialization_options": {
-                "checkOnSave": {
-                    "command": "clippy"
-                }
+                "checkOnSave": true,
+                "check": { "command": "clippy" }
             }
         }
     },
