@@ -1,20 +1,20 @@
 // Zed settings
 {
     "helix_mode": false,
-    "disable_ai": false, //nice option :)
-    "tab_size": 2,
-    "auto_update": false, //managed with brew
+    "disable_ai": true, //nice option :)
+    "tab_size": 4,
+    "auto_update": true,
     "base_keymap": "VSCode",
     "ui_font_size": 16,
     "buffer_font_size": 14,
     "soft_wrap": "preferred_line_length",
-    "preferred_line_length": 110,
+    "preferred_line_length": 100,
     "use_system_path_prompts": false,
     "use_system_prompts": false,
     "show_completions_on_input": true,
     "auto_signature_help": true,
     "show_signature_help_after_edits": true,
-    "vim_mode": true,
+    "vim_mode": false,
     "confirm_quit": true,
     "show_whitespaces": "selection",
     "file_finder": {
@@ -57,12 +57,6 @@
         "mode": "subtle",
         "enabled_in_text_threads": true
     },
-    "icon_theme": "Colored Zed Icons Theme Dark",
-    "theme": {
-        "mode": "dark",
-        "dark": "Catppuccin Mocha",
-        "light": "Catppuccin Mocha - No Italics"
-    },
     "features": {
         "edit_prediction_provider": "zed"
     },
@@ -84,23 +78,20 @@
         }
     },
     "lsp": {
-        "golangci-lint": {
+        "rust-analyzer": {
             "initialization_options": {
-                "command": [
-                    "golangci-lint",
-                    "run",
-                    "--disable",
-                    "lll",
-                    "--output.json.path=stdout",
-                    "--issues-exit-code=1",
-                    "--show-stats=false"
-                ]
+                "checkOnSave": {
+                    "command": "clippy"
+                }
             }
         }
     },
     "languages": {
-        "Go": {
-            "language_servers": ["gopls", "golangci-lint"]
+        "Rust": {
+            "inlay_hints": {
+                "enabled": true
+            },
+            "format_on_save": "on"
         }
     }
 }
