@@ -1,28 +1,39 @@
 //! Solves day 10 of Advent of Code 2025
 
-use std::{fs, num::ParseIntError, path::Path, process::exit};
+use core::num::ParseIntError;
+use std::{fs, path::Path, process::exit};
 
 use log::info;
 use regex::Regex;
 
+/// Represents an indicator light with the current and the desired state
 #[derive(Debug)]
 struct IndicatorLight {
+    /// Wether the battery is currently active
     active: bool,
+    /// Whether the battery should be active
     should_be_active: bool,
 }
 
+/// Represents a button wiring, defining which indicator lights are toggled by a button
 #[derive(Debug)]
 struct ButtonWiring {
+    /// Indices (0-based) of indicator lights that are toggled by this button
     toggled_lights: Vec<usize>,
 }
 
+/// Represents a full factory machine with indicator lights, required joltage and buttons
 #[derive(Debug)]
 struct FactoryMachine {
+    /// The indicator lights of the machine
     indicator_lights: Vec<IndicatorLight>,
+    /// The required joltages of the machine
     required_joltage: Vec<u32>,
+    /// The button wirings of the machine
     buttons: Vec<ButtonWiring>,
 }
 
+/// Parses a list of usize
 fn parse_usize_list(text: &str) -> Result<Vec<usize>, ParseIntError> {
     text.split(',')
         .map(|button_str| button_str.trim().parse::<usize>())
