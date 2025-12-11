@@ -1,12 +1,12 @@
 //! Solves day 11 of Advent of Code 2025
 extern crate alloc;
 use alloc::borrow::ToOwned as _;
+use alloc::collections::VecDeque;
 use alloc::fmt;
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use log::{debug, info};
-use std::cell::Ref;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::Path;
 use std::process::exit;
@@ -163,7 +163,7 @@ fn parse_input(content: &str) -> Result<Graph, String> {
 }
 
 /// Finds all nodes that can potenially reach the sink node
-fn find_nodes_reaching_sink(grph: Graph) -> Result<HashSet<String>, String> {
+fn find_nodes_reaching_sink(grph: &Graph) -> Result<HashSet<String>, String> {
     let Some(sink) = grph.sink.borrow().clone() else {
         return Err("Sink does not exist!".to_owned());
     };
@@ -203,7 +203,7 @@ fn main() {
         exit(1);
     };
     info!("Parsed input: {input:?}");
-    let can_reach = find_nodes_reaching_sink(input);
+    let can_reach = find_nodes_reaching_sink(&input);
     info!("Nodes that can reach the sink: {can_reach:?}");
     println!("Result TBD");
 }
