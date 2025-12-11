@@ -48,10 +48,11 @@ impl Graph {
 
     /// Get an existing node or add a new empty one and return that if it doesn't exist yet.
     fn get_or_add(&self, name: &str) -> Link {
-        self.nodes
-            .borrow()
-            .get(name)
-            .map_or_else(|| self.add_empty(name), ToOwned::to_owned)
+        let exists = self.nodes.borrow().get(name).is_some();
+        if !exists {
+            self.add_empty(name);
+        }
+        self.nodes.borrow().get(name).unwrap().to_owned()
     }
 
     /// Adds a new empty node to the graph
@@ -91,6 +92,6 @@ impl Graph {
 fn main() {
     let grph = Graph::new();
     grph.add_empty("Mango");
-    //grph.add_node("you", vec![]);
+    grph.add_node("you", vec!["Mango"]);
     println!("Hello, graph!\n{grph:?}");
 }
