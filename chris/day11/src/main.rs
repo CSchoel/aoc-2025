@@ -82,6 +82,7 @@ impl Graph {
     fn add_node(&self, name: &str, outgoing: Vec<&str>) {
         // NOTE: Due to problems with the borrow checker not allowing us to call
         // get_mut_or_add twice, we need to
+        debug!("Adding node {name:?} with outgoing {outgoing:?}");
         let new_node = self.get_or_add(name);
         for node_str in outgoing {
             let node = self.get_or_add(node_str);
@@ -93,6 +94,9 @@ impl Graph {
     }
     /// Connect two nodes in the graph
     fn connect(parent: &Link, child: &Link) {
+        let parent_name = parent.borrow().name.clone();
+        let child_name: String = child.borrow().name.clone();
+        debug!("Connecting nodes: {parent_name} -> {child_name}");
         parent.borrow_mut().outgoing.push(Rc::clone(child));
         child.borrow_mut().incoming.push(Rc::clone(parent));
     }
