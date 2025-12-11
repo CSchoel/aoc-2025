@@ -1,21 +1,28 @@
 //! Solves day 11 of Advent of Code 2025
-
-use std::{borrow::ToOwned, cell::RefCell, collections::HashMap, fmt, rc::Rc};
+extern crate alloc;
+use alloc::borrow::ToOwned as _;
+use alloc::fmt;
+use alloc::rc::Rc;
+use core::cell::RefCell;
+use log::debug;
+use std::collections::HashMap;
 
 /// Represents a node in the graph
 struct Node {
-    name: String,
     /// Incoming connections
     incoming: Vec<Link>,
+    /// Name of the node
+    name: String,
     /// Outgoing connections
     outgoing: Vec<Link>,
 }
 
-type Link = Rc<RefCell<Node>>;
+/// Link to a node
+pub(crate) type Link = Rc<RefCell<Node>>;
 
 impl Node {
-    /// Creata a new node without any connections
-    fn new(name: String) -> Self {
+    /// Create a new node without any connections
+    const fn new(name: String) -> Self {
         Self {
             name,
             incoming: Vec::new(),
@@ -60,24 +67,6 @@ impl fmt::Debug for Node {
 }
 
 impl Graph {
-    /// Create a new empty graph
-    fn new() -> Self {
-        Self {
-            nodes: Rc::new(RefCell::new(HashMap::new())),
-            sink: None,
-            source: None,
-        }
-    }
-
-    /// Get an existing node or add a new empty one and return that if it doesn't exist yet.
-    fn get_or_add(&self, name: &str) -> Link {
-        let exists = self.nodes.borrow().get(name).is_some();
-        if !exists {
-            self.add_empty(name);
-        }
-        self.nodes.borrow().get(name).unwrap().to_owned()
-    }
-
     /// Adds a new empty node to the graph
     #[expect(
         clippy::unwrap_used,
@@ -89,12 +78,6 @@ impl Graph {
         self.nodes.borrow().get(name).unwrap().to_owned()
     }
 
-    /// Connect two nodes in the graph
-    fn connect(parent: Link, child: Link) {
-        parent.borrow_mut().outgoing.push(child.clone());
-        child.borrow_mut().incoming.push(parent.clone());
-    }
-
     /// Adds a node with outgoing edges, updating both forward and backward refefences
     fn add_node(&self, name: &str, outgoing: Vec<&str>) {
         // NOTE: Due to problems with the borrow checker not allowing us to call
@@ -102,19 +85,46 @@ impl Graph {
         let new_node = self.get_or_add(name);
         for node_str in outgoing {
             let node = self.get_or_add(node_str);
-            Graph::connect(new_node.clone(), node);
+            Self::connect(&new_node, &node);
         }
-        ()
         // match self.nodes.get(name) {
         //     Some(existing) =>
         // }
+    }
+    /// Connect two nodes in the graph
+    fn connect(parent: &Link, child: &Link) {
+        parent.borrow_mut().outgoing.push(Rc::clone(child));
+        child.borrow_mut().incoming.push(Rc::clone(parent));
+    }
+    /// Get an existing node or add a new empty one and return that if it doesn't exist yet.
+    #[expect(
+        clippy::unwrap_used,
+        reason = "Panic cannot happen since we check for existance and add before accessing the value."
+    )]
+    fn get_or_add(&self, name: &str) -> Link {
+        let exists = self.nodes.borrow().get(name).is_some();
+        if !exists {
+            self.add_empty(name);
+        }
+        self.nodes.borrow().get(name).unwrap().to_owned()
+    }
+
+    /// Create a new empty graph
+    fn new() -> Self {
+        Self {
+            nodes: Rc::new(RefCell::new(HashMap::new())),
+            sink: None,
+            source: None,
+        }
     }
 }
 
 #[expect(clippy::print_stdout, reason = "CLI function must report output.")]
 fn main() {
+    env_logger::init();
     let grph = Graph::new();
     grph.add_empty("Mango");
     grph.add_node("you", vec!["Mango"]);
-    println!("Hello, graph!\n{grph:?}");
+    debug!("Test graph: {grph:?}");
+    println!("Result TBD");
 }
