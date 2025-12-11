@@ -7,9 +7,10 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use log::{debug, info};
 use std::collections::{HashMap, HashSet};
-use std::fs;
+use std::num::Saturating;
 use std::path::Path;
 use std::process::exit;
+use std::{borrow, fs};
 
 /// Represents a node in the graph
 struct Node {
@@ -182,6 +183,52 @@ fn find_nodes_reaching_sink(grph: &Graph) -> Result<HashSet<String>, String> {
     Ok(can_reach_sink)
 }
 
+/// Finds all paths from source to sink
+#[expect(
+    clippy::iter_over_hash_type,
+    reason = "We want to iter over a hash set here, I see no problem."
+)]
+fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
+    let Some(sink) = grph.sink.borrow().clone() else {
+        return Err("Source does not exist!".to_owned());
+    };
+    let mut to_explore: HashSet<String> = HashSet::new();
+    to_explore.insert(sink.borrow().name.clone());
+    let mut count_paths_to_sink: HashMap<String, u32> = HashMap::new();
+    let nodes = grph.nodes.borrow();
+    for path_length in 1..nodes.len() {
+        info!("Exploring paths to source of length {path_length}");
+        let mut to_explore_next: HashSet<String> = HashSet::new();
+        for node_name in &to_explore {
+            debug!("Exploring node {node_name}");
+            let Some(node) = nodes.get(node_name) else {
+                return Err(format!("Could not find node with name {node_name}"));
+            };
+            for inc in &node.borrow().incoming {
+                // We've reached inc by stepping backwards from node
+                // since we've started searching at sink, this means
+                // that all paths of lentgh path_length - 1 from node
+                // to sink can be extended by one more step, appending
+                // the node inc in the front.
+                let inc_name = inc.borrow().name.clone();
+                let increment = *count_paths_to_sink.get(node_name).unwrap_or(&1);
+                let entry = count_paths_to_sink.entry(inc_name.clone()).or_insert(0);
+                *entry = (*entry).saturating_add(increment);
+                to_explore_next.insert(inc_name.clone());
+                debug!("Incrementing path count of {inc_name} from {entry} by {increment}.");
+            }
+        }
+        // At this point we have updated our counts with all new paths of length path_length
+        // and we have collected nodes that still have incoming edges that we can follow.
+        to_explore = to_explore_next;
+        debug!("Paths to sink with length {path_length}: {count_paths_to_sink:?}");
+    }
+    count_paths_to_sink
+        .get("you")
+        .map(borrow::ToOwned::to_owned)
+        .ok_or_else(|| "Source node not found!".to_owned())
+}
+
 #[expect(
     clippy::print_stdout,
     clippy::print_stderr,
@@ -205,5 +252,12 @@ fn main() {
     info!("Parsed input: {input:?}");
     let can_reach = find_nodes_reaching_sink(&input);
     info!("Nodes that can reach the sink: {can_reach:?}");
-    println!("Result TBD");
+    let count = match count_paths_from_source_to_sink(&input) {
+        Ok(cnt) => cnt,
+        Err(err) => {
+            eprintln!("Could not find count. Reason:\n{err}");
+            exit(1);
+        }
+    };
+    println!("Result: {count}");
 }
