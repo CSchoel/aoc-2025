@@ -1,5 +1,6 @@
 //! Solves day 11 of Advent of Code 2025
 extern crate alloc;
+use alloc::borrow;
 use alloc::borrow::ToOwned as _;
 use alloc::collections::VecDeque;
 use alloc::fmt;
@@ -7,10 +8,9 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use log::{debug, info};
 use std::collections::{HashMap, HashSet};
-use std::num::Saturating;
+use std::fs;
 use std::path::Path;
 use std::process::exit;
-use std::{borrow, fs};
 
 /// Represents a node in the graph
 struct Node {
