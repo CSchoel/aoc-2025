@@ -213,9 +213,12 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
                 let inc_name = inc.borrow().name.clone();
                 let increment = *count_paths_to_sink.get(node_name).unwrap_or(&1);
                 let entry = count_paths_to_sink.entry(inc_name.clone()).or_insert(0);
-                *entry = (*entry).saturating_add(increment);
+                let previous = *entry;
+                *entry = previous.saturating_add(increment);
                 to_explore_next.insert(inc_name.clone());
-                debug!("Incrementing path count of {inc_name} from {entry} by {increment}.");
+                debug!(
+                    "Incrementing path count of {inc_name} from {previous} by {increment} to {entry}."
+                );
             }
         }
         // At this point we have updated our counts with all new paths of length path_length
