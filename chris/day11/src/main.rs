@@ -1,9 +1,8 @@
 //! Solves day 11 of Advent of Code 2025
 
-use std::{borrow::ToOwned, cell::RefCell, collections::HashMap, rc::Rc};
+use std::{borrow::ToOwned, cell::RefCell, collections::HashMap, fmt, rc::Rc};
 
 /// Represents a node in the graph
-#[derive(Debug)]
 struct Node {
     name: String,
     /// Incoming connections
@@ -34,6 +33,30 @@ struct Graph {
     sink: Option<Link>,
     /// Sink node
     source: Option<Link>,
+}
+
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Node")
+            .field("name", &self.name)
+            .field(
+                "incoming",
+                &self
+                    .incoming
+                    .iter()
+                    .map(|node| node.borrow().name.clone())
+                    .collect::<Vec<String>>(),
+            )
+            .field(
+                "outgoing",
+                &self
+                    .outgoing
+                    .iter()
+                    .map(|node| node.borrow().name.clone())
+                    .collect::<Vec<String>>(),
+            )
+            .finish()
+    }
 }
 
 impl Graph {
