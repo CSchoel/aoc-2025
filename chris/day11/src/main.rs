@@ -72,7 +72,7 @@ impl Graph {
     }
 
     /// Adds a node with outgoing edges, updating both forward and backward refefences
-    fn add_node(&mut self, name: &str, outgoing: Vec<&str>) {
+    fn add_node(&self, name: &str, outgoing: Vec<&str>) {
         // NOTE: Due to problems with the borrow checker not allowing us to call
         // get_mut_or_add twice, we need to
         let new_node = self.get_or_add(name);
@@ -90,5 +90,7 @@ impl Graph {
 #[expect(clippy::print_stdout, reason = "CLI function must report output.")]
 fn main() {
     let grph = Graph::new();
-    println!("Hello, world!");
+    grph.add_empty("Mango");
+    //grph.add_node("you", vec![]);
+    println!("Hello, graph!\n{grph:?}");
 }
