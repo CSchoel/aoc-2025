@@ -4,8 +4,11 @@ use alloc::borrow::ToOwned as _;
 use alloc::fmt;
 use alloc::rc::Rc;
 use core::cell::RefCell;
-use log::debug;
+use log::{debug, info};
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
+use std::process::exit;
 
 /// Represents a node in the graph
 struct Node {
@@ -37,9 +40,9 @@ struct Graph {
     /// Hash map of all nodes by name
     nodes: Rc<RefCell<HashMap<String, Link>>>,
     /// Source node
-    sink: Option<Link>,
+    sink: Rc<RefCell<Option<Link>>>,
     /// Sink node
-    source: Option<Link>,
+    source: Rc<RefCell<Option<Link>>>,
 }
 
 impl fmt::Debug for Node {
@@ -75,7 +78,20 @@ impl Graph {
     fn add_empty(&self, name: &str) -> Link {
         let new_node = Rc::new(RefCell::new(Node::new(name.to_owned())));
         self.nodes.borrow_mut().insert(name.to_owned(), new_node);
-        self.nodes.borrow().get(name).unwrap().to_owned()
+        let node_ref = self.nodes.borrow().get(name).unwrap().to_owned();
+        match name {
+            "you" => {
+                info!("Found source node {name}!");
+                self.source.replace(Some(Rc::clone(&node_ref)));
+            }
+            "out" => {
+                info!("Found sink node {name}!");
+                self.sink.replace(Some(Rc::clone(&node_ref)));
+            }
+            _ => {}
+        }
+
+        node_ref
     }
 
     /// Adds a node with outgoing edges, updating both forward and backward refefences
@@ -96,7 +112,7 @@ impl Graph {
     fn connect(parent: &Link, child: &Link) {
         let parent_name = parent.borrow().name.clone();
         let child_name: String = child.borrow().name.clone();
-        debug!("Connecting nodes: {parent_name} -> {child_name}");
+        debug!("Connecting nodes: {parent_name} <-> {child_name}");
         parent.borrow_mut().outgoing.push(Rc::clone(child));
         child.borrow_mut().incoming.push(Rc::clone(parent));
     }
@@ -117,18 +133,54 @@ impl Graph {
     fn new() -> Self {
         Self {
             nodes: Rc::new(RefCell::new(HashMap::new())),
-            sink: None,
-            source: None,
+            sink: Rc::new(RefCell::new(None)),
+            source: Rc::new(RefCell::new(None)),
         }
     }
 }
 
-#[expect(clippy::print_stdout, reason = "CLI function must report output.")]
+// fn debug_graph() {
+//     let grph = Graph::new();
+//     grph.add_empty("Mango");
+//     grph.add_node("you", vec!["Mango"]);
+//     debug!("Test graph: {grph:?}");
+// }
+
+/// Parse input for day 11
+fn parse_input(content: &str) -> Result<Graph, String> {
+    let grph = Graph::new();
+    for line in content.lines() {
+        let Some((name, children)) = line.split_once(':') else {
+            return Err(format!("Could not parse line {line}"));
+        };
+        grph.add_node(
+            name.trim(),
+            children.split_ascii_whitespace().collect::<Vec<&str>>(),
+        );
+    }
+    Ok(grph)
+}
+
+#[expect(
+    clippy::print_stdout,
+    clippy::print_stderr,
+    reason = "CLI function must report output."
+)]
 fn main() {
     env_logger::init();
-    let grph = Graph::new();
-    grph.add_empty("Mango");
-    grph.add_node("you", vec!["Mango"]);
-    debug!("Test graph: {grph:?}");
+    let input_path: &Path = Path::new("input.txt");
+    let contents: String = match fs::read_to_string(input_path) {
+        Ok(str) => str,
+        Err(err) => {
+            let input_disp = input_path.display();
+            eprintln!("Could not read {input_disp}!\nReason: Err({err})");
+            exit(1);
+        }
+    };
+    let Ok(input) = parse_input(&contents) else {
+        eprintln!("Could not parse input {contents}");
+        exit(1);
+    };
+    info!("Parsed input: {input:?}");
     println!("Result TBD");
 }
