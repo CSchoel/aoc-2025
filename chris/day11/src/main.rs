@@ -196,6 +196,7 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
     to_explore.insert(sink.borrow().name.clone());
     let mut count_paths_to_sink: HashMap<String, u32> = HashMap::new();
     let nodes = grph.nodes.borrow();
+    let known_paths: HashMap<String, HashSet<String>> = HashMap::new();
     for path_length in 1..nodes.len() {
         info!("Exploring paths to source of length {path_length}");
         let mut to_explore_next: HashSet<String> = HashSet::new();
@@ -211,6 +212,7 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
                 // to sink can be extended by one more step, appending
                 // the node inc in the front.
                 let inc_name = inc.borrow().name.clone();
+                // TODO: Idea: Just propagate new increments, not full path count
                 let increment = *count_paths_to_sink.get(node_name).unwrap_or(&1);
                 let entry = count_paths_to_sink.entry(inc_name.clone()).or_insert(0);
                 let previous = *entry;
