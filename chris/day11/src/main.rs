@@ -192,11 +192,17 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
     let Some(sink) = grph.sink.borrow().clone() else {
         return Err("Source does not exist!".to_owned());
     };
+    let sink_name = sink.borrow().name.clone();
     let mut to_explore: HashSet<String> = HashSet::new();
-    to_explore.insert(sink.borrow().name.clone());
+    to_explore.insert(sink_name.clone());
     let mut count_paths_to_sink: HashMap<String, u32> = HashMap::new();
     let nodes = grph.nodes.borrow();
-    let known_paths: HashMap<String, HashSet<String>> = HashMap::new();
+    let known_paths: Rc<RefCell<HashMap<String, Rc<RefCell<HashSet<String>>>>>> =
+        Rc::new(RefCell::new(HashMap::new()));
+    known_paths.borrow_mut().insert(
+        sink_name.clone(),
+        Rc::new(RefCell::new(HashSet::from_iter(vec![sink_name]))),
+    );
     for path_length in 1..nodes.len() {
         info!("Exploring paths to source of length {path_length}");
         let mut to_explore_next: HashSet<String> = HashSet::new();
@@ -213,6 +219,7 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
                 // the node inc in the front.
                 let inc_name = inc.borrow().name.clone();
                 // TODO: Idea: Just propagate new increments, not full path count
+                let empty_set: Rc<RefCell<HashSet<String>>> = Rc::new(RefCell::new(HashSet::new()));
                 let increment = *count_paths_to_sink.get(node_name).unwrap_or(&1);
                 let entry = count_paths_to_sink.entry(inc_name.clone()).or_insert(0);
                 let previous = *entry;
@@ -221,6 +228,24 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
                 debug!(
                     "Incrementing path count of {inc_name} from {previous} by {increment} to {entry}."
                 );
+                let Some(current_to_sink) = known_paths
+                    .borrow()
+                    .get(node_name)
+                    .map(borrow::ToOwned::to_owned)
+                else {
+                    // if there are no known paths, then there is nothing to do
+                    debug!("No paths from");
+                    continue;
+                };
+                for path in &*current_to_sink.borrow() {
+                    known_paths
+                        .borrow_mut()
+                        .entry(inc_name.clone())
+                        .or_default()
+                        .borrow_mut()
+                        .insert(format!("{inc_name}->{path}"));
+                    debug!("Registering path {inc_name}->{path}");
+                }
             }
         }
         // At this point we have updated our counts with all new paths of length path_length
@@ -228,10 +253,17 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
         to_explore = to_explore_next;
         debug!("Paths to sink with length {path_length}: {count_paths_to_sink:?}");
     }
-    count_paths_to_sink
+    let mut count = count_paths_to_sink
+        .get("you")
+        .map(borrow::ToOwned::to_owned)
+        .ok_or_else(|| "Source node not found!".to_owned());
+    count = known_paths
+        .borrow()
         .get("you")
         .map(borrow::ToOwned::to_owned)
         .ok_or_else(|| "Source node not found!".to_owned())
+        .map(|set| set.borrow().len() as u32);
+    count
 }
 
 #[expect(
