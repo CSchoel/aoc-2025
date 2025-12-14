@@ -187,6 +187,10 @@ fn find_nodes_reaching_sink(grph: &Graph) -> Result<HashSet<String>, String> {
 }
 
 /// Finds all paths from source to sink
+#[expect(
+    unused,
+    reason = "This is the solution for part 1, which we keep for reference."
+)]
 fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
     let Some(source) = grph.source.borrow().clone() else {
         return Err("Cannot find source!".to_owned());
@@ -211,17 +215,20 @@ fn count_paths_to_sink(
     // (name of node, path to node)
     let mut to_explore: VecDeque<(String, String)> = VecDeque::new();
     let mut explored_paths: HashSet<String> = HashSet::new();
-    to_explore.push_back((start_name, String::new()));
+    to_explore.push_back((start_name.clone(), start_name));
     let mut paths_to_sink: HashSet<String> = HashSet::new();
     let nodes = grph.nodes.borrow();
     while !to_explore.is_empty() {
         let Some((next_name, next_path)) = to_explore.pop_front() else {
             continue;
         };
+        debug!("Exploring path {next_path}");
         if next_name == "out" {
+            info!("Found new path to sink: {next_path}");
             paths_to_sink.insert(next_path.clone());
         }
         if explored_paths.contains(&next_path) {
+            debug! {"Path already explored, skipping!"}
             // don't visit the same path twice
             continue;
         }
@@ -266,7 +273,7 @@ fn main() {
     info!("Parsed input: {input:?}");
     // let can_reach = find_nodes_reaching_sink(&input);
     // info!("Nodes that can reach the sink: {can_reach:?}");
-    let count = match count_paths_to_sink("svr", &vec!["dag", "fft"], &input) {
+    let count = match count_paths_to_sink("svr", &vec!["dac", "fft"], &input) {
         Ok(cnt) => cnt,
         Err(err) => {
             eprintln!("Could not find count. Reason:\n{err}");
