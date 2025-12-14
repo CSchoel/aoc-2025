@@ -266,6 +266,41 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
     count
 }
 
+/// Second implementation for part 1 of day 11
+fn count_paths_from_source_to_sink2(grph: &Graph) -> Result<u32, String> {
+    let Some(source) = grph.source.borrow().clone() else {
+        return Err("Source does not exist!".to_owned());
+    };
+    let source_name = source.borrow().name.clone();
+    // (name of node, path to node)
+    let mut to_explore: VecDeque<(String, String)> = VecDeque::new();
+    let mut explored_paths: HashSet<String> = HashSet::new();
+    to_explore.push_back((source_name, String::new()));
+    let mut paths_to_sink: HashSet<String> = HashSet::new();
+    let nodes = grph.nodes.borrow();
+    while !to_explore.is_empty() {
+        let Some((next_name, next_path)) = to_explore.pop_front() else {
+            continue;
+        };
+        if next_name == "out" {
+            paths_to_sink.insert(next_path.clone());
+        }
+        if explored_paths.contains(&next_path) {
+            // don't visit the same path twice
+            continue;
+        }
+        explored_paths.insert(next_path.clone());
+        let Some(node) = nodes.get(&next_name) else {
+            continue;
+        };
+        for out_node in &node.borrow().outgoing {
+            let out_name = out_node.borrow().name.clone();
+            to_explore.push_back((out_name.clone(), format!("{next_path}->{out_name}")));
+        }
+    }
+    u32::try_from(paths_to_sink.len()).map_err(|err| format!("Casting error: {err}"))
+}
+
 #[expect(
     clippy::print_stdout,
     clippy::print_stderr,
@@ -287,9 +322,9 @@ fn main() {
         exit(1);
     };
     info!("Parsed input: {input:?}");
-    let can_reach = find_nodes_reaching_sink(&input);
-    info!("Nodes that can reach the sink: {can_reach:?}");
-    let count = match count_paths_from_source_to_sink(&input) {
+    // let can_reach = find_nodes_reaching_sink(&input);
+    // info!("Nodes that can reach the sink: {can_reach:?}");
+    let count = match count_paths_from_source_to_sink2(&input) {
         Ok(cnt) => cnt,
         Err(err) => {
             eprintln!("Could not find count. Reason:\n{err}");
