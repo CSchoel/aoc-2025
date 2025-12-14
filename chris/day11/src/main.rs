@@ -195,13 +195,22 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
     let Some(source) = grph.source.borrow().clone() else {
         return Err("Cannot find source!".to_owned());
     };
-    count_paths_to_sink(&source.borrow().name, &Vec::new(), grph)
+    let Some(sink) = grph.sink.borrow().clone() else {
+        return Err("Cannot find source!".to_owned());
+    };
+    count_paths_to_sink(
+        &source.borrow().name,
+        &Vec::new(),
+        &sink.borrow().name,
+        grph,
+    )
 }
 
 /// Find all paths from the `start_node` to the sink, considering only paths that contain all nodes in `must_visit`.
 fn count_paths_to_sink(
     start_node: &str,
     must_visit: &Vec<&str>,
+    end_node: &str,
     grph: &Graph,
 ) -> Result<u32, String> {
     let Some(start_name) = grph
@@ -223,7 +232,7 @@ fn count_paths_to_sink(
             continue;
         };
         debug!("Exploring path {next_path}");
-        if next_name == "out" {
+        if next_name == end_node {
             info!("Found new path to sink: {next_path}");
             paths_to_sink.insert(next_path.clone());
         }
@@ -238,7 +247,7 @@ fn count_paths_to_sink(
         };
         for out_node in &node.borrow().outgoing {
             let out_name = out_node.borrow().name.clone();
-            to_explore.push_back((out_name.clone(), format!("{next_path}->{out_name}")));
+            to_explore.push_front((out_name.clone(), format!("{next_path}->{out_name}")));
         }
     }
     u32::try_from(
@@ -249,6 +258,9 @@ fn count_paths_to_sink(
     )
     .map_err(|err| format!("Casting error: {err}"))
 }
+
+// /// Find all paths from the `start_node` to the sink, considering only paths that contain all nodes in `must_visit`.
+// fn list_paths_from_a_to_b(node_a: &str, node_b: &str)
 
 #[expect(
     clippy::print_stdout,
@@ -273,7 +285,7 @@ fn main() {
     info!("Parsed input: {input:?}");
     // let can_reach = find_nodes_reaching_sink(&input);
     // info!("Nodes that can reach the sink: {can_reach:?}");
-    let count = match count_paths_to_sink("svr", &vec!["dac", "fft"], &input) {
+    let count = match count_paths_to_sink("svr", &vec![], "dac", &input) {
         Ok(cnt) => cnt,
         Err(err) => {
             eprintln!("Could not find count. Reason:\n{err}");
