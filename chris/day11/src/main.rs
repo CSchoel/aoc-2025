@@ -266,7 +266,7 @@ fn main() {
     info!("Parsed input: {input:?}");
     // let can_reach = find_nodes_reaching_sink(&input);
     // info!("Nodes that can reach the sink: {can_reach:?}");
-    let count = match count_paths_from_source_to_sink(&input) {
+    let count = match count_paths_to_sink("svr", &vec!["dag", "fft"], &input) {
         Ok(cnt) => cnt,
         Err(err) => {
             eprintln!("Could not find count. Reason:\n{err}");
