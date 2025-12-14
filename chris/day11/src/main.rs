@@ -184,90 +184,7 @@ fn find_nodes_reaching_sink(grph: &Graph) -> Result<HashSet<String>, String> {
 }
 
 /// Finds all paths from source to sink
-#[expect(
-    clippy::iter_over_hash_type,
-    reason = "We want to iter over a hash set here, I see no problem."
-)]
 fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
-    let Some(sink) = grph.sink.borrow().clone() else {
-        return Err("Source does not exist!".to_owned());
-    };
-    let sink_name = sink.borrow().name.clone();
-    let mut to_explore: HashSet<String> = HashSet::new();
-    to_explore.insert(sink_name.clone());
-    let mut count_paths_to_sink: HashMap<String, u32> = HashMap::new();
-    let nodes = grph.nodes.borrow();
-    let known_paths: Rc<RefCell<HashMap<String, Rc<RefCell<HashSet<String>>>>>> =
-        Rc::new(RefCell::new(HashMap::new()));
-    known_paths.borrow_mut().insert(
-        sink_name.clone(),
-        Rc::new(RefCell::new(HashSet::from_iter(vec![sink_name]))),
-    );
-    for path_length in 1..nodes.len() {
-        info!("Exploring paths to source of length {path_length}");
-        let mut to_explore_next: HashSet<String> = HashSet::new();
-        for node_name in &to_explore {
-            debug!("Exploring node {node_name}");
-            let Some(node) = nodes.get(node_name) else {
-                return Err(format!("Could not find node with name {node_name}"));
-            };
-            for inc in &node.borrow().incoming {
-                // We've reached inc by stepping backwards from node
-                // since we've started searching at sink, this means
-                // that all paths of lentgh path_length - 1 from node
-                // to sink can be extended by one more step, appending
-                // the node inc in the front.
-                let inc_name = inc.borrow().name.clone();
-                // TODO: Idea: Just propagate new increments, not full path count
-                let empty_set: Rc<RefCell<HashSet<String>>> = Rc::new(RefCell::new(HashSet::new()));
-                let increment = *count_paths_to_sink.get(node_name).unwrap_or(&1);
-                let entry = count_paths_to_sink.entry(inc_name.clone()).or_insert(0);
-                let previous = *entry;
-                *entry = previous.saturating_add(increment);
-                to_explore_next.insert(inc_name.clone());
-                debug!(
-                    "Incrementing path count of {inc_name} from {previous} by {increment} to {entry}."
-                );
-                let Some(current_to_sink) = known_paths
-                    .borrow()
-                    .get(node_name)
-                    .map(borrow::ToOwned::to_owned)
-                else {
-                    // if there are no known paths, then there is nothing to do
-                    debug!("No paths from");
-                    continue;
-                };
-                for path in &*current_to_sink.borrow() {
-                    known_paths
-                        .borrow_mut()
-                        .entry(inc_name.clone())
-                        .or_default()
-                        .borrow_mut()
-                        .insert(format!("{inc_name}->{path}"));
-                    debug!("Registering path {inc_name}->{path}");
-                }
-            }
-        }
-        // At this point we have updated our counts with all new paths of length path_length
-        // and we have collected nodes that still have incoming edges that we can follow.
-        to_explore = to_explore_next;
-        debug!("Paths to sink with length {path_length}: {count_paths_to_sink:?}");
-    }
-    let mut count = count_paths_to_sink
-        .get("you")
-        .map(borrow::ToOwned::to_owned)
-        .ok_or_else(|| "Source node not found!".to_owned());
-    count = known_paths
-        .borrow()
-        .get("you")
-        .map(borrow::ToOwned::to_owned)
-        .ok_or_else(|| "Source node not found!".to_owned())
-        .map(|set| set.borrow().len() as u32);
-    count
-}
-
-/// Second implementation for part 1 of day 11
-fn count_paths_from_source_to_sink2(grph: &Graph) -> Result<u32, String> {
     let Some(source) = grph.source.borrow().clone() else {
         return Err("Source does not exist!".to_owned());
     };
@@ -324,7 +241,7 @@ fn main() {
     info!("Parsed input: {input:?}");
     // let can_reach = find_nodes_reaching_sink(&input);
     // info!("Nodes that can reach the sink: {can_reach:?}");
-    let count = match count_paths_from_source_to_sink2(&input) {
+    let count = match count_paths_from_source_to_sink(&input) {
         Ok(cnt) => cnt,
         Err(err) => {
             eprintln!("Could not find count. Reason:\n{err}");
