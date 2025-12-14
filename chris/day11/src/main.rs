@@ -1,6 +1,5 @@
 //! Solves day 11 of Advent of Code 2025
 extern crate alloc;
-use alloc::borrow;
 use alloc::borrow::ToOwned as _;
 use alloc::collections::VecDeque;
 use alloc::fmt;
@@ -164,6 +163,10 @@ fn parse_input(content: &str) -> Result<Graph, String> {
 }
 
 /// Finds all nodes that can potenially reach the sink node
+#[expect(
+    unused,
+    reason = "This was just a test function to play with the Graph structure."
+)]
 fn find_nodes_reaching_sink(grph: &Graph) -> Result<HashSet<String>, String> {
     let Some(sink) = grph.sink.borrow().clone() else {
         return Err("Sink does not exist!".to_owned());
@@ -186,13 +189,29 @@ fn find_nodes_reaching_sink(grph: &Graph) -> Result<HashSet<String>, String> {
 /// Finds all paths from source to sink
 fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
     let Some(source) = grph.source.borrow().clone() else {
+        return Err("Cannot find source!".to_owned());
+    };
+    count_paths_to_sink(&source.borrow().name, &Vec::new(), grph)
+}
+
+/// Find all paths from the `start_node` to the sink, considering only paths that contain all nodes in `must_visit`.
+fn count_paths_to_sink(
+    start_node: &str,
+    must_visit: &Vec<&str>,
+    grph: &Graph,
+) -> Result<u32, String> {
+    let Some(start_name) = grph
+        .nodes
+        .borrow()
+        .get(start_node)
+        .map(|x| x.borrow().name.clone())
+    else {
         return Err("Source does not exist!".to_owned());
     };
-    let source_name = source.borrow().name.clone();
     // (name of node, path to node)
     let mut to_explore: VecDeque<(String, String)> = VecDeque::new();
     let mut explored_paths: HashSet<String> = HashSet::new();
-    to_explore.push_back((source_name, String::new()));
+    to_explore.push_back((start_name, String::new()));
     let mut paths_to_sink: HashSet<String> = HashSet::new();
     let nodes = grph.nodes.borrow();
     while !to_explore.is_empty() {
@@ -215,7 +234,13 @@ fn count_paths_from_source_to_sink(grph: &Graph) -> Result<u32, String> {
             to_explore.push_back((out_name.clone(), format!("{next_path}->{out_name}")));
         }
     }
-    u32::try_from(paths_to_sink.len()).map_err(|err| format!("Casting error: {err}"))
+    u32::try_from(
+        paths_to_sink
+            .iter()
+            .filter(|path| must_visit.iter().all(|to_visit| path.contains(to_visit)))
+            .count(),
+    )
+    .map_err(|err| format!("Casting error: {err}"))
 }
 
 #[expect(
