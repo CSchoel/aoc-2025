@@ -6,30 +6,30 @@ use std::{fs, path::Path, process::exit};
 use log::info;
 
 /// Ranges of fresh ingredients
-type FreshRanges = Vec<(u32, u32)>;
+type FreshRanges = Vec<(u64, u64)>;
 
 /// Parses input for day 5
-fn parse_input(content: &str) -> Result<(FreshRanges, Vec<u32>), String> {
-    let mut fresh_ranges: Vec<(u32, u32)> = Vec::new();
-    let mut ingredients: Vec<u32> = Vec::new();
+fn parse_input(content: &str) -> Result<(FreshRanges, Vec<u64>), String> {
+    let mut fresh_ranges: Vec<(u64, u64)> = Vec::new();
+    let mut ingredients: Vec<u64> = Vec::new();
     for line in content.lines() {
         if line.contains('-') {
             // parse new fresh range
             let Ok(range) = line
                 .split('-')
-                .map(str::parse::<u32>)
-                .collect::<Result<Vec<u32>, ParseIntError>>()
+                .map(str::parse::<u64>)
+                .collect::<Result<Vec<u64>, ParseIntError>>()
             else {
                 return Err(format!("Could not parse fresh range from {line}"));
             };
-            let Ok([start, end]): Result<[u32; 2], _> = range.try_into() else {
+            let Ok([start, end]): Result<[u64; 2], _> = range.try_into() else {
                 return Err(format!("Could not unpack fresh range from {line}"));
             };
             fresh_ranges.push([start, end].into());
         } else if !line.is_empty() {
             // parse new ingredient
-            let Ok(ingredient) = line.parse::<u32>() else {
-                return Err(format!("Could not parse u32 from {line}"));
+            let Ok(ingredient) = line.parse::<u64>() else {
+                return Err(format!("Could not parse u64 from {line}"));
             };
             ingredients.push(ingredient);
         } else {
