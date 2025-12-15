@@ -1,7 +1,8 @@
 //! Solves day 5 of Advent of Code 2025
 
 use core::num::ParseIntError;
-use std::{fs, num::Saturating, path::Path, process::exit};
+use core::num::Saturating;
+use std::{fs, path::Path, process::exit};
 
 use log::info;
 
