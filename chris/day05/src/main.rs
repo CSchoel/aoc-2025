@@ -53,7 +53,6 @@ fn count_fresh_ingredients(fresh_ranges: &FreshRanges, ingredients: &[u64]) -> u
 
 /// Counts the number of ingredient IDs in any fresh range
 fn count_all_fresh_ids(fresh_ranges: &FreshRanges) -> u64 {
-    //let mut merged_ranges: FreshRanges = Vec::new();
     let mut sorted_ranges = fresh_ranges.clone();
     sorted_ranges.sort_by(|&(start1, _), &(start2, _)| start1.cmp(&start2));
     // add sentinel
@@ -66,10 +65,15 @@ fn count_all_fresh_ids(fresh_ranges: &FreshRanges) -> u64 {
             // start is still inside the current range => only update end
             current_end = end.max(current_end);
         } else {
-            //merged_ranges.push((current_start, current_end));
+            if (current_start, current_end) != (0, 0) {
+                let increment = Saturating(current_end) - Saturating(current_start) + Saturating(1);
+                fresh_ids += increment;
+                info!(
+                    "Found {increment} new fresh IDs in merged range {current_start}-{current_end}."
+                );
+            }
             current_start = start;
             current_end = end;
-            fresh_ids += Saturating(current_end) - Saturating(current_start) + Saturating(1);
         }
     }
     fresh_ids.0
