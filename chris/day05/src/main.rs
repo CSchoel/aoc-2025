@@ -1,7 +1,7 @@
 //! Solves day 5 of Advent of Code 2025
 
 use core::num::ParseIntError;
-use std::{fs, path::Path, process::exit};
+use std::{fs, num::Saturating, path::Path, process::exit};
 
 use log::info;
 
@@ -40,7 +40,7 @@ fn parse_input(content: &str) -> Result<(FreshRanges, Vec<u64>), String> {
 }
 
 /// Counts the number of ingredient IDs that are fresh
-fn count_fresh(fresh_ranges: &FreshRanges, ingredients: &[u64]) -> usize {
+fn count_fresh_ingredients(fresh_ranges: &FreshRanges, ingredients: &[u64]) -> usize {
     ingredients
         .iter()
         .filter(|ingredient| {
@@ -49,6 +49,30 @@ fn count_fresh(fresh_ranges: &FreshRanges, ingredients: &[u64]) -> usize {
                 .any(|&(start, end)| ingredient >= &&start && ingredient <= &&end)
         })
         .count()
+}
+
+/// Counts the number of ingredient IDs in any fresh range
+fn count_all_fresh_ids(fresh_ranges: &FreshRanges) -> u64 {
+    //let mut merged_ranges: FreshRanges = Vec::new();
+    let mut sorted_ranges = fresh_ranges.clone();
+    sorted_ranges.sort_by(|&(start1, _), &(start2, _)| start1.cmp(&start2));
+    // add sentinel
+    sorted_ranges.push((u64::MAX, u64::MAX - 1));
+    let mut current_start = 0;
+    let mut current_end = 0;
+    let mut fresh_ids: Saturating<u64> = Saturating(0);
+    for (start, end) in sorted_ranges {
+        if start <= current_end {
+            // start is still inside the current range => only update end
+            current_end = end.max(current_end);
+        } else {
+            //merged_ranges.push((current_start, current_end));
+            current_start = start;
+            current_end = end;
+            fresh_ids += Saturating(current_end) - Saturating(current_start) + Saturating(1);
+        }
+    }
+    fresh_ids.0
 }
 
 #[expect(
@@ -72,6 +96,8 @@ fn main() {
         exit(1);
     };
     info!("Parsed input: {fresh_ranges:?}, {ingredients:?}");
-    let fresh = count_fresh(&fresh_ranges, &ingredients);
-    println!("Found {fresh} fresh ingredient IDs.");
+    let fresh = count_fresh_ingredients(&fresh_ranges, &ingredients);
+    println!("Found {fresh} ingredients with fresh ingredient IDs.");
+    let all_fresh = count_all_fresh_ids(&fresh_ranges);
+    println!("Found {all_fresh} fresh ingredient IDs.");
 }
