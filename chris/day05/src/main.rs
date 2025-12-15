@@ -39,6 +39,18 @@ fn parse_input(content: &str) -> Result<(FreshRanges, Vec<u64>), String> {
     Ok((fresh_ranges, ingredients))
 }
 
+/// Counts the number of ingredient IDs that are fresh
+fn count_fresh(fresh_ranges: &FreshRanges, ingredients: &[u64]) -> usize {
+    ingredients
+        .iter()
+        .filter(|ingredient| {
+            fresh_ranges
+                .iter()
+                .any(|&(start, end)| ingredient >= &&start && ingredient <= &&end)
+        })
+        .count()
+}
+
 #[expect(
     clippy::print_stdout,
     clippy::print_stderr,
@@ -55,10 +67,11 @@ fn main() {
             exit(1);
         }
     };
-    let Ok(input) = parse_input(&contents) else {
+    let Ok((fresh_ranges, ingredients)) = parse_input(&contents) else {
         eprintln!("Could not parse input {contents}");
         exit(1);
     };
-    info!("Parsed input: {input:?}");
-    println!("Hello, world!");
+    info!("Parsed input: {fresh_ranges:?}, {ingredients:?}");
+    let fresh = count_fresh(&fresh_ranges, &ingredients);
+    println!("Found {fresh} fresh ingredient IDs.");
 }
