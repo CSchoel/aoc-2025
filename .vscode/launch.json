@@ -8,7 +8,7 @@
             "program": "palasso/cli.py",
             "args": [
                 // day
-                "8",
+                "10",
                 // part
                 "2",
                 // if ommitted will read sample input
