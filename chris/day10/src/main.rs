@@ -1,7 +1,7 @@
 //! Solves day 10 of Advent of Code 2025
 
 use core::num::ParseIntError;
-use std::{fs, path::Path, process::exit};
+use std::{env::args, fs, path::Path, process::exit};
 
 use log::info;
 use regex::Regex;
@@ -62,7 +62,7 @@ impl IndicatorLight {
     /// Parses a `IndicatorLight` configuration from a string (e.g. `"#..##"`)
     fn from_str(text: &str) -> Vec<Self> {
         text.chars()
-            .map(|chr| IndicatorLight {
+            .map(|chr| Self {
                 active: false,
                 should_be_active: chr == '#',
             })
@@ -116,7 +116,8 @@ fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, String> {
 #[expect(clippy::print_stderr, reason = "This is a CLI function.")]
 fn main() {
     env_logger::init();
-    let input_path: &Path = Path::new("input.txt");
+    let input_path_str = args().nth(1).unwrap_or_else(|| "input.txt".to_owned());
+    let input_path = Path::new(&input_path_str);
     let contents: String = match fs::read_to_string(input_path) {
         Ok(str) => str,
         Err(err) => {
