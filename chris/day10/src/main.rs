@@ -1,13 +1,15 @@
 //! Solves day 10 of Advent of Code 2025
+extern crate alloc;
 
+use alloc::collections::VecDeque;
 use core::num::ParseIntError;
 use std::{env::args, fs, path::Path, process::exit};
 
-use log::info;
+use log::{debug, info};
 use regex::Regex;
 
 /// Represents an indicator light with the current and the desired state
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct IndicatorLight {
     /// Wether the battery is currently active
     active: bool,
@@ -68,6 +70,12 @@ impl IndicatorLight {
             })
             .collect()
     }
+    /// Toggles the indicator light.
+    /// Returns `true` if the light is in the correct state after the toggle.
+    const fn toggle(&mut self) -> bool {
+        self.active = !self.active;
+        self.active == self.should_be_active
+    }
 }
 
 /// Parses a list of usize
@@ -112,6 +120,47 @@ fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, String> {
         .collect::<Result<Vec<FactoryMachine>, String>>()
 }
 
+/// Calculates the solution for part 1: The minimum number of button presses required
+/// to correctly configure the indicator lights.
+fn fewest_button_presses(machine: &FactoryMachine) -> Result<u32, String> {
+    // TODO: We could add a hash map of known states to avoid re-checking them
+    // (number of buttons pressed, machine state achieved)
+    let mut queue: VecDeque<(u32, Vec<IndicatorLight>)> = VecDeque::new();
+    // Add a safety margin to not just crash when there is an input that can't be satisfied.
+    let max_queue_size = 1_000_000;
+    queue.push_back((0, machine.indicator_lights.clone()));
+    // BFS search through possible button press sequences
+    while !queue.is_empty() && queue.len() < max_queue_size {
+        let Some((presses, state)) = queue.pop_front() else {
+            return Err("No more elements in queue. This should never happen!".to_owned());
+        };
+        for wiring in &machine.buttons {
+            let new_presses = presses.saturating_add(1);
+            let mut new_state = state.clone();
+            let mut all_correct = true;
+            debug!("Pressing button nr. {new_presses}: {wiring:?}");
+            for light_index in &wiring.toggled_lights {
+                let Some(light) = new_state.get_mut(*light_index) else {
+                    return Err(format!(
+                        "Index {light_index} out of bounds for {new_state:?}!"
+                    ));
+                };
+                let correct = light.toggle();
+                all_correct = all_correct && correct;
+            }
+            debug!("Resulting state: {new_state:?}");
+            if all_correct {
+                return Ok(new_presses);
+            }
+            queue.push_back((new_presses, new_state));
+        }
+    }
+    let size = queue.len();
+    Err(format!(
+        "No combination of button presses was found after queue grew to {size}!"
+    ))
+}
+
 #[expect(clippy::print_stdout, reason = "This is a CLI function.")]
 #[expect(clippy::print_stderr, reason = "This is a CLI function.")]
 fn main() {
@@ -133,5 +182,10 @@ fn main() {
         exit(1);
     };
     info!("Parsed input: {input:?}");
-    println!("foo");
+    let Some(machine) = input.first() else {
+        eprintln!("Could not get first machine from input!");
+        exit(1);
+    };
+    let fewest_test = fewest_button_presses(machine);
+    println!("Result: {fewest_test:?}");
 }
