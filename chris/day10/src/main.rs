@@ -27,12 +27,12 @@ struct ButtonWiring {
 /// Represents a full factory machine with indicator lights, required joltage and buttons
 #[derive(Debug)]
 struct FactoryMachine {
+    /// The button wirings of the machine
+    buttons: Vec<ButtonWiring>,
     /// The indicator lights of the machine
     indicator_lights: Vec<IndicatorLight>,
     /// The required joltages of the machine
     required_joltage: Vec<u32>,
-    /// The button wirings of the machine
-    buttons: Vec<ButtonWiring>,
 }
 
 impl ButtonWiring {
@@ -165,6 +165,11 @@ fn fewest_button_presses(machine: &FactoryMachine) -> Result<u32, String> {
     ))
 }
 
+/// Solves part 1
+fn sum_fewest_button_presses(machines: &[FactoryMachine]) -> Result<u32, String> {
+    machines.iter().map(fewest_button_presses).sum()
+}
+
 #[expect(clippy::print_stdout, reason = "This is a CLI function.")]
 #[expect(clippy::print_stderr, reason = "This is a CLI function.")]
 fn main() {
@@ -186,10 +191,17 @@ fn main() {
         exit(1);
     };
     info!("Parsed input: {input:?}");
-    let Some(machine) = input.first() else {
-        eprintln!("Could not get first machine from input!");
-        exit(1);
+    // let Some(machine) = input.first() else {
+    //     eprintln!("Could not get first machine from input!");
+    //     exit(1);
+    // };
+
+    let fewest_presses = match sum_fewest_button_presses(&input) {
+        Ok(fewest) => fewest,
+        Err(msg) => {
+            eprintln!("Could not find fewest button presses!\nReason: {msg}");
+            exit(1);
+        }
     };
-    let fewest_test = fewest_button_presses(machine);
-    println!("Result: {fewest_test:?}");
+    println!("Result: {fewest_presses}");
 }
