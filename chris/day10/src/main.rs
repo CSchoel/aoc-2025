@@ -120,6 +120,12 @@ fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, String> {
         .collect::<Result<Vec<FactoryMachine>, String>>()
 }
 
+/// Checks if a state is correct (i.e. all lights that should be active are active)
+fn is_correct_state(state: &[IndicatorLight]) -> bool {
+    state
+        .iter()
+        .all(|light| light.active == light.should_be_active)
+}
 /// Calculates the solution for part 1: The minimum number of button presses required
 /// to correctly configure the indicator lights.
 fn fewest_button_presses(machine: &FactoryMachine) -> Result<u32, String> {
@@ -137,7 +143,6 @@ fn fewest_button_presses(machine: &FactoryMachine) -> Result<u32, String> {
         for wiring in &machine.buttons {
             let new_presses = presses.saturating_add(1);
             let mut new_state = state.clone();
-            let mut all_correct = true;
             debug!("Pressing button nr. {new_presses}: {wiring:?}");
             for light_index in &wiring.toggled_lights {
                 let Some(light) = new_state.get_mut(*light_index) else {
@@ -145,11 +150,10 @@ fn fewest_button_presses(machine: &FactoryMachine) -> Result<u32, String> {
                         "Index {light_index} out of bounds for {new_state:?}!"
                     ));
                 };
-                let correct = light.toggle();
-                all_correct = all_correct && correct;
+                light.toggle();
             }
             debug!("Resulting state: {new_state:?}");
-            if all_correct {
+            if is_correct_state(&new_state) {
                 return Ok(new_presses);
             }
             queue.push_back((new_presses, new_state));
