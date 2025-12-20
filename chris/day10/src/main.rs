@@ -116,7 +116,9 @@ fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, String> {
 #[expect(clippy::print_stderr, reason = "This is a CLI function.")]
 fn main() {
     env_logger::init();
-    let input_path_str = args().nth(1).unwrap_or_else(|| "input.txt".to_owned());
+    let input_path_str = args()
+        .nth(1)
+        .unwrap_or_else(|| "sample_input.txt".to_owned());
     let input_path = Path::new(&input_path_str);
     let contents: String = match fs::read_to_string(input_path) {
         Ok(str) => str,
