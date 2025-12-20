@@ -33,45 +33,33 @@ struct FactoryMachine {
     buttons: Vec<ButtonWiring>,
 }
 
-/// Parses a list of usize
-fn parse_usize_list(text: &str) -> Result<Vec<usize>, ParseIntError> {
-    text.split(',')
-        .map(|button_str| button_str.trim().parse::<usize>())
-        .collect::<Result<Vec<usize>, ParseIntError>>()
-}
-
-fn parse_u32_list(text: &str) -> Result<Vec<u32>, ParseIntError> {
-    text.split(',')
-        .map(|button_str| button_str.trim().parse::<u32>())
-        .collect::<Result<Vec<u32>, ParseIntError>>()
-}
-
 impl ButtonWiring {
-    fn from_str(text: &str) -> Result<Vec<Self>, &str> {
+    /// Parse a `ButtonWiring` from a string representation (e.g. `"(17, 8)"`)
+    fn from_str(text: &str) -> Result<Vec<Self>, String> {
         let Ok(pattern) = Regex::new(r"\(((?:\d,?\s*)+)\)") else {
-            return Err("Internal error: Invalid regex");
+            return Err("Internal error: Invalid regex. This should never happen!".to_owned());
         };
         pattern
             .captures_iter(text)
-            .map(|button_str| {
-                button_str
+            .map(|button_capture| {
+                let button_str = button_capture
                     .get(1)
-                    .ok_or("Could not find capture group!")
-                    .and_then(|cap| {
-                        parse_usize_list(cap.as_str())
-                            .map_err(|_| "Could not parse toogled buttons!")
-                            .and_then(|lst| {
-                                Ok(ButtonWiring {
-                                    toggled_lights: lst,
-                                })
-                            })
-                    })
+                    .ok_or_else(|| {
+                        format!("Could not find capture group!\nCapture: {button_capture:?}")
+                    })?
+                    .as_str();
+                let lst = parse_usize_list(button_str)
+                    .map_err(|err| format!("Could not parse toogled buttons!\nReason: {err:?}"))?;
+                Ok(Self {
+                    toggled_lights: lst,
+                })
             })
-            .collect::<Result<Vec<ButtonWiring>, &str>>()
+            .collect::<Result<Vec<Self>, String>>()
     }
 }
 
 impl IndicatorLight {
+    /// Parses a `IndicatorLight` configuration from a string (e.g. `"#..##"`)
     fn from_str(text: &str) -> Vec<Self> {
         text.chars()
             .map(|chr| IndicatorLight {
@@ -82,21 +70,38 @@ impl IndicatorLight {
     }
 }
 
-fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, &str> {
-    let pattern =
-        Regex::new(r"\[([.#]+)\] ((?:\((?:\d+,?\s*)+\)\s*)+) \{((?:\d+,?\s*)+)\}").unwrap();
+/// Parses a list of usize
+fn parse_usize_list(text: &str) -> Result<Vec<usize>, ParseIntError> {
+    text.split(',')
+        .map(|button_str| button_str.trim().parse::<usize>())
+        .collect::<Result<Vec<usize>, ParseIntError>>()
+}
+
+/// Parses a list of comma-separated numbers as u32
+fn parse_u32_list(text: &str) -> Result<Vec<u32>, ParseIntError> {
+    text.split(',')
+        .map(|button_str| button_str.trim().parse::<u32>())
+        .collect::<Result<Vec<u32>, ParseIntError>>()
+}
+
+/// Parses input for day 10 (e.g. `"[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}"`)
+fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, String> {
+    let Ok(pattern) = Regex::new(r"\[([.#]+)\] ((?:\((?:\d+,?\s*)+\)\s*)+) \{((?:\d+,?\s*)+)\}")
+    else {
+        return Err("Internal error in regex definition. This should never happen!".to_owned());
+    };
     content
         .lines()
         .map(|line| {
             let Some(cap) = pattern.captures(line) else {
-                return Err("Line {line} did not match");
+                return Err(format!("Line {line} did not match"));
             };
             let (_, [indicators_str, buttons_str, joltages_str]) = cap.extract();
             let indicators = IndicatorLight::from_str(indicators_str);
             let buttons = ButtonWiring::from_str(buttons_str);
             let joltages = parse_u32_list(joltages_str);
             let (Ok(buttons_ok), Ok(joltages_ok)) = (buttons, joltages) else {
-                return Err("Could not parse buttons or joltages");
+                return Err("Could not parse buttons or joltages".to_owned());
             };
             Ok(FactoryMachine {
                 indicator_lights: indicators,
@@ -104,7 +109,7 @@ fn parse_input(content: &str) -> Result<Vec<FactoryMachine>, &str> {
                 required_joltage: joltages_ok,
             })
         })
-        .collect::<Result<Vec<FactoryMachine>, &str>>()
+        .collect::<Result<Vec<FactoryMachine>, String>>()
 }
 
 #[expect(clippy::print_stdout, reason = "This is a CLI function.")]
