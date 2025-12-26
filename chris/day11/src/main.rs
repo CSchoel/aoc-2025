@@ -40,9 +40,9 @@ impl Node {
 struct Graph {
     /// Hash map of all nodes by name
     nodes: Rc<RefCell<HashMap<String, Link>>>,
-    /// Source node
-    sink: Rc<RefCell<Option<Link>>>,
     /// Sink node
+    sink: Rc<RefCell<Option<Link>>>,
+    /// Source node
     source: Rc<RefCell<Option<Link>>>,
 }
 
