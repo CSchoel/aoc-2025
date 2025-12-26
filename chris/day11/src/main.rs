@@ -120,7 +120,7 @@ impl Graph {
     /// Get an existing node or add a new empty one and return that if it doesn't exist yet.
     #[expect(
         clippy::unwrap_used,
-        reason = "Panic cannot happen since we check for existance and add before accessing the value."
+        reason = "Panic cannot happen since we check for existence and add before accessing the value."
     )]
     fn get_or_add(&self, name: &str) -> Link {
         let exists = self.nodes.borrow().get(name).is_some();
