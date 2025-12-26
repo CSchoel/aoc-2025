@@ -4,7 +4,7 @@
 # Cognitive complexity limits - keep strict for maintainability
 cognitive-complexity-threshold = 15
 too-many-arguments-threshold = 7    # Relaxed for GUI functions
-too-many-lines-threshold = 100      # Relaxed for GUI rendering functions
+too-many-lines-threshold = 50
 type-complexity-threshold = 150
 
 # Documentation requirements - keep strict

@@ -1,3 +1,5 @@
+#[allow(clippy::blanket_clippy_restriction_lints)]
+
 [package]
 authors = ["Christopher Schölzel"]
 name = "day06"
