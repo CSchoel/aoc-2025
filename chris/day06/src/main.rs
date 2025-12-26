@@ -16,7 +16,7 @@ enum Operator {
 }
 
 /// A math problem consisting of a list of numbers and an operator (+ or *)
-type MathProblem = (Vec<u32>, Operator);
+type MathProblem = (Vec<u64>, Operator);
 
 /// Type of an input line
 enum LineType {
@@ -64,8 +64,8 @@ fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
                 // add a new line of numbers
                 let Ok(numbers) = elements
                     .iter()
-                    .map(|x| x.parse::<u32>())
-                    .collect::<Result<Vec<u32>, ParseIntError>>()
+                    .map(|x| x.parse::<u64>())
+                    .collect::<Result<Vec<u64>, ParseIntError>>()
                 else {
                     return Err(format!("Could not parse numbers from line {line}"));
                 };
@@ -86,11 +86,11 @@ fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
 }
 
 /// Solves all math problems in a list
-fn solve_math_problems(problems: &[MathProblem]) -> u32 {
+fn solve_math_problems(problems: &[MathProblem]) -> u64 {
     problems
         .iter()
         .map(|problem| match problem.1 {
-            Operator::Add => problem.0.iter().sum::<u32>(),
+            Operator::Add => problem.0.iter().sum::<u64>(),
             Operator::Mul => problem.0.iter().product(),
         })
         .sum()
