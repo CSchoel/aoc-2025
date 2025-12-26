@@ -162,7 +162,7 @@ fn parse_input(content: &str) -> Result<Graph, String> {
     Ok(grph)
 }
 
-/// Finds all nodes that can potenially reach the sink node
+/// Finds all nodes that can potentially reach the sink node
 #[expect(
     unused,
     reason = "This was just a test function to play with the Graph structure."
