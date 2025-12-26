@@ -7,7 +7,7 @@ use std::{env::args, fs, path::Path, process::exit};
 use log::info;
 
 /// An operator for combining multiple numbers
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Operator {
     /// Addition
     Add,
@@ -85,6 +85,54 @@ fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
     Ok(result)
 }
 
+/// Parses input for part 2
+fn parse_input2(content: &str) -> Result<Vec<MathProblem>, String> {
+    let random_access = content
+        .lines()
+        .map(|line| line.chars().collect::<Vec<char>>())
+        .collect::<Vec<Vec<char>>>();
+    let rows = random_access.len();
+    let cols = random_access.iter().map(Vec::len).max().unwrap_or(0);
+    let mut result = Vec::new();
+    let empty = Vec::new();
+    let mut current_operator = Operator::Add;
+    let mut current_numbers: Vec<u64> = Vec::new();
+    for col in 0..=cols {
+        let digits = (0..rows.saturating_sub(1_usize))
+            .map(|digit_row| {
+                random_access
+                    .get(digit_row)
+                    .unwrap_or(&empty)
+                    .get(col)
+                    .unwrap_or(&' ')
+            })
+            .collect::<String>();
+        let operator = random_access
+            .get(rows.saturating_sub(1_usize))
+            .unwrap_or(&empty)
+            .get(col)
+            .unwrap_or(&' ');
+        if operator != &' ' {
+            current_operator = match *operator {
+                '+' => Operator::Add,
+                '*' => Operator::Mul,
+                _ => return Err(format!("Unknown operator {operator}!")),
+            };
+        }
+        // Check if we have an empty column
+        if digits.trim().is_empty() && operator == &' ' {
+            result.push((current_numbers.clone(), current_operator));
+            current_numbers = Vec::new();
+        } else {
+            let Ok(number) = digits.trim().parse::<u64>() else {
+                return Err(format!("Could not parse number from {digits}"));
+            };
+            current_numbers.push(number);
+        }
+    }
+    Ok(result)
+}
+
 /// Solves all math problems in a list
 fn solve_math_problems(problems: &[MathProblem]) -> u64 {
     problems
@@ -115,7 +163,7 @@ fn main() {
             exit(1);
         }
     };
-    let Ok(input) = parse_input(&contents) else {
+    let Ok(input) = parse_input2(&contents) else {
         eprintln!("Could not parse input {contents}");
         exit(1);
     };
