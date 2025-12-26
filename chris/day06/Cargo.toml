@@ -1,0 +1,36 @@
+[package]
+authors = ["Christopher Schölzel"]
+name = "day06"
+version = "0.1.0"
+edition = "2024"
+license-file = "../LICENSE"
+publish = false # prevent accidentally publishing the package
+
+[dependencies]
+env_logger = "0.11.8"
+log = "0.4.29"
+regex = "1.12.2"
+
+[lints.clippy]
+# Extremely pedantic clippy lints workspace-wide - maximum annoyance!
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+restriction = { level = "warn", priority = -1 }
+# Specific high-priority lints - deny the worst offenders
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "warn"
+print_stderr = "warn"
+missing_docs_in_private_items = "warn"
+# relax where needed
+single_call_fn = "allow"  # for AoC we will write a lot of single-use functions
+implicit_return = "allow"  # otherwise clippy complains both if return is there and not
+separated_literal_suffix = "allow"  # otherwise clippy complains about both non-underscore and underscore syntax
+question_mark_used = "allow"  # again, this is just a convention where we have to decide for one side
+pub_with_shorthand = "allow"
