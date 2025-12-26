@@ -6,3 +6,6 @@ Cargo.lock
 
 # Generated workspace files
 workspaces
+
+# Input files
+input.txt
