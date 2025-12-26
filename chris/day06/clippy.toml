@@ -1,0 +1,51 @@
+# Code Rhythm - Balanced Clippy Configuration
+# Strict where it matters, practical for GUI development
+
+# Cognitive complexity limits - keep strict for maintainability
+cognitive-complexity-threshold = 15
+too-many-arguments-threshold = 7    # Relaxed for GUI functions
+too-many-lines-threshold = 50
+type-complexity-threshold = 150
+
+# Documentation requirements - keep strict
+missing-docs-in-crate-items = true
+
+# Performance thresholds - keep strict
+trivial-copy-size-limit = 32
+pass-by-value-size-limit = 128
+
+# Array and collection limits - keep strict
+array-size-threshold = 100000
+
+# Literal formatting - keep strict
+literal-representation-threshold = 5
+
+# Function parameter limits - relaxed for legitimate short names
+single-char-binding-names-threshold = 4
+
+# Enum variant limits - keep strict for memory efficiency
+enum-variant-size-threshold = 150
+
+# Avoid certain patterns - relaxed for testing
+avoid-breaking-exported-api = true
+allow-expect-in-tests = true       # Tests should use expect() for clear messages
+allow-unwrap-in-tests = false      # Still discourage unwrap in tests
+allow-dbg-in-tests = false         # Keep strict on debug prints
+
+# Enforce specific patterns - keep strict
+enforce-iter-loop-reborrow = true
+semicolon-inside-block-ignore-singleline = false
+semicolon-outside-block-ignore-multiline = false
+
+# Arithmetic safety - keep strict (no exceptions)
+arithmetic-side-effects-allowed = []
+arithmetic-side-effects-allowed-unary = []
+
+# Indexing safety - keep strict
+suppress-restriction-lint-in-const = false
+
+# String patterns - keep strict
+allowed-scripts = ["Latin"]
+
+# Maximum restrictions adjusted for GUI development
+excessive-nesting-threshold = 5 # Relaxed for GUI nested closures/matches
