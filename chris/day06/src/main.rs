@@ -37,6 +37,7 @@ fn line_type(line: &str) -> Option<LineType> {
 /// Parses input
 /// This assumes that each line in the input except for the last one contains the
 /// same amount of numbers while the last one contains the same number of '*' or '+' symbols.
+#[expect(unused, reason = "This was part of the solution for part 1.")]
 fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
     let mut result: Vec<MathProblem> = Vec::new();
     for line in content.lines() {
