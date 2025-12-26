@@ -11,7 +11,7 @@ use regex::Regex;
 /// Represents an indicator light with the current and the desired state
 #[derive(Debug, Clone, Copy)]
 struct IndicatorLight {
-    /// Wether the battery is currently active
+    /// Whether the battery is currently active
     active: bool,
     /// Whether the battery should be active
     should_be_active: bool,
