@@ -95,7 +95,7 @@ impl Graph {
         node_ref
     }
 
-    /// Adds a node with outgoing edges, updating both forward and backward refefences
+    /// Adds a node with outgoing edges, updating both forward and backward references
     fn add_node(&self, name: &str, outgoing: Vec<&str>) {
         // NOTE: Due to problems with the borrow checker not allowing us to call
         // get_mut_or_add twice, we need to
