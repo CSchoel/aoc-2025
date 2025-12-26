@@ -6,29 +6,43 @@ use std::{env::args, fs, path::Path, process::exit};
 
 use log::info;
 
+/// An operator for combining multiple numbers
+#[derive(Debug)]
+enum Operator {
+    /// Addition
+    Add,
+    /// Multiplication
+    Mul,
+}
+
 /// A math problem consisting of a list of numbers and an operator (+ or *)
-type MathProblem = (Vec<u32>, char);
+type MathProblem = (Vec<u32>, Operator);
+
+/// Type of an input line
+enum LineType {
+    /// Represents a line containing (unsigned) numbers
+    Number,
+    /// Represents a line containing the operators + and *
+    Operator,
+}
+
+/// Finds out the line type of a line in the input
+fn line_type(line: &str) -> Option<LineType> {
+    match line.split_ascii_whitespace().next()?.chars().next()? {
+        '+' | '*' => Some(LineType::Operator),
+        _ => Some(LineType::Number),
+    }
+}
 
 /// Parses input
 /// This assumes that each line in the input except for the last one contains the
 /// same amount of numbers while the last one contains the same number of '*' or '+' symbols.
 fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
-    let mut result: Vec<(Vec<u32>, char)> = Vec::new();
+    let mut result: Vec<MathProblem> = Vec::new();
     for line in content.lines() {
-        enum LineType {
-            /// Represents a line containing (unsigned) numbers
-            Number,
-            /// Represents a line containing the operators + and *
-            Operator,
-        }
         let elements = line.split_ascii_whitespace().collect::<Vec<&str>>();
-        let line_type = match elements.first() {
-            None => continue, // ignore empty line
-            Some(first_el) => match first_el.chars().next() {
-                None => continue,
-                Some('+' | '*') => LineType::Operator,
-                Some(_) => LineType::Number,
-            },
+        let Some(line_type) = line_type(line) else {
+            continue;
         };
         match line_type {
             LineType::Operator => {
@@ -39,7 +53,11 @@ fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
                             "Encountered empty op_char for problem {math_problem:?}"
                         ));
                     };
-                    math_problem.1 = op_char;
+                    math_problem.1 = match op_char {
+                        '+' => Operator::Add,
+                        '*' => Operator::Mul,
+                        _ => return Err(format!("Unknown operator {op_char:?} encountered!")),
+                    }
                 }
             }
             LineType::Number => {
@@ -54,7 +72,7 @@ fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
                 // extend result array if it is empty
                 if result.is_empty() {
                     for num in numbers {
-                        result.push((vec![num], '#'));
+                        result.push((vec![num], Operator::Add));
                     }
                 } else {
                     for (num, math_problem) in zip(numbers, result.iter_mut()) {
@@ -65,6 +83,17 @@ fn parse_input(content: &str) -> Result<Vec<MathProblem>, String> {
         }
     }
     Ok(result)
+}
+
+/// Solves all math problems in a list
+fn solve_math_problems(problems: &[MathProblem]) -> u32 {
+    problems
+        .iter()
+        .map(|problem| match problem.1 {
+            Operator::Add => problem.0.iter().sum::<u32>(),
+            Operator::Mul => problem.0.iter().product(),
+        })
+        .sum()
 }
 
 #[expect(
@@ -91,5 +120,6 @@ fn main() {
         exit(1);
     };
     info!("Parsed input: {input:?}");
-    // println!("Found {all_fresh} fresh ingredient IDs.");
+    let result = solve_math_problems(&input);
+    println!("Result: {result}");
 }
