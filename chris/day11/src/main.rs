@@ -40,9 +40,9 @@ impl Node {
 struct Graph {
     /// Hash map of all nodes by name
     nodes: Rc<RefCell<HashMap<String, Link>>>,
-    /// Source node
-    sink: Rc<RefCell<Option<Link>>>,
     /// Sink node
+    sink: Rc<RefCell<Option<Link>>>,
+    /// Source node
     source: Rc<RefCell<Option<Link>>>,
 }
 
@@ -95,7 +95,7 @@ impl Graph {
         node_ref
     }
 
-    /// Adds a node with outgoing edges, updating both forward and backward refefences
+    /// Adds a node with outgoing edges, updating both forward and backward references
     fn add_node(&self, name: &str, outgoing: Vec<&str>) {
         // NOTE: Due to problems with the borrow checker not allowing us to call
         // get_mut_or_add twice, we need to
@@ -120,7 +120,7 @@ impl Graph {
     /// Get an existing node or add a new empty one and return that if it doesn't exist yet.
     #[expect(
         clippy::unwrap_used,
-        reason = "Panic cannot happen since we check for existance and add before accessing the value."
+        reason = "Panic cannot happen since we check for existence and add before accessing the value."
     )]
     fn get_or_add(&self, name: &str) -> Link {
         let exists = self.nodes.borrow().get(name).is_some();
@@ -162,7 +162,7 @@ fn parse_input(content: &str) -> Result<Graph, String> {
     Ok(grph)
 }
 
-/// Finds all nodes that can potenially reach the sink node
+/// Finds all nodes that can potentially reach the sink node
 #[expect(
     unused,
     reason = "This was just a test function to play with the Graph structure."

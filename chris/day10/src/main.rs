@@ -11,7 +11,7 @@ use regex::Regex;
 /// Represents an indicator light with the current and the desired state
 #[derive(Debug, Clone, Copy)]
 struct IndicatorLight {
-    /// Wether the battery is currently active
+    /// Whether the battery is currently active
     active: bool,
     /// Whether the battery should be active
     should_be_active: bool,
@@ -51,7 +51,7 @@ impl ButtonWiring {
                     })?
                     .as_str();
                 let lst = parse_usize_list(button_str)
-                    .map_err(|err| format!("Could not parse toogled buttons!\nReason: {err:?}"))?;
+                    .map_err(|err| format!("Could not parse toggled buttons!\nReason: {err:?}"))?;
                 Ok(Self {
                     toggled_lights: lst,
                 })
