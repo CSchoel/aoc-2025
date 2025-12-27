@@ -37,11 +37,32 @@ fn parse_input(content: &str) -> TachyonManifold {
             .collect::<HashSet<usize>>();
         splitter_positions.push(positions);
     }
-    let manifold = TachyonManifold {
+
+    TachyonManifold {
         start_pos,
         splitter_positions,
-    };
-    manifold
+    }
+}
+
+fn count_splits(input: &TachyonManifold) -> usize {
+    let mut beam_columns: HashSet<usize> = HashSet::new();
+    let mut split: usize = 0;
+    beam_columns.insert(input.start_pos);
+    for splitters in &input.splitter_positions {
+        // compare beam positions with splitters
+        let mut new_beam_columns = HashSet::new();
+        for beam_index in beam_columns.iter() {
+            if splitters.contains(beam_index) {
+                split += 1;
+                new_beam_columns.insert(beam_index.saturating_sub(1));
+                new_beam_columns.insert(beam_index.saturating_add(1));
+            } else {
+                new_beam_columns.insert(*beam_index);
+            }
+        }
+        beam_columns = new_beam_columns;
+    }
+    split
 }
 
 #[expect(
@@ -65,5 +86,6 @@ fn main() {
     };
     let input = parse_input(&contents);
     info!("Parsed input: {input:?}");
-    println!("Result: TBD");
+    let result = count_splits(&input);
+    println!("Result: {result}");
 }
