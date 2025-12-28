@@ -117,10 +117,9 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
             );
             continue;
         }
-        debug!("Group ID 1: {group_id_1}, Group ID 2: {group_id_2}, Connections: {connections}");
         // Merge groups: All group IDs of group2 have to be set to the ID of group1
-        debug!(
-            "Connecting {pos1:?} and {pos2:?}, merging group {group_id_1} into group {group_id_2}."
+        info!(
+            "Connecting {pos1:?} and {pos2:?}, merging group {group_id_2} into group {group_id_1}."
         );
         let removed = groups
             .remove(&group_id_2)
@@ -140,8 +139,11 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
             write!(acc, "{id}: {grp_len}, ");
             acc
         });
-        debug!("Group sizes: {sizes}");
-        if connections >= num {
+        info!("Group sizes: {sizes}");
+        info!("Added {connections} connections.");
+        debug!("Groups: {groups:?}");
+        debug!("Group IDs: {group_ids:?}");
+        if connections >= num - 1 {
             // Only add `num` connections
             break;
         }
