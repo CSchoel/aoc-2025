@@ -108,6 +108,11 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
     let mut groups: HashMap<usize, HashSet<&Position3D>> = HashMap::new();
     let mut connections: usize = 0;
     for (pos1, pos2) in shortest {
+        if connections >= num {
+            // Only add `num` connections
+            break;
+        }
+        connections = connections.saturating_add(1);
         let group_id_1 = *group_ids.entry(pos1).or_insert(connections);
         let group_id_2 = *group_ids.entry(pos2).or_insert(connections);
         // Skip connections within the same group
@@ -133,7 +138,6 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
             group1_set.insert(pos_to_update);
             group_ids.insert(pos_to_update, group_id_1);
         }
-        connections = connections.saturating_add(1);
         let sizes = groups.iter().fold(String::new(), |mut acc, (id, grp)| {
             let grp_len = grp.len();
             write!(acc, "{id}: {grp_len}, ");
@@ -143,10 +147,6 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
         info!("Added {connections} connections.");
         debug!("Groups: {groups:?}");
         debug!("Group IDs: {group_ids:?}");
-        if connections >= num - 1 {
-            // Only add `num` connections
-            break;
-        }
     }
     // Get group sizes and multiply the three largest ones.
     let mut sizes = groups
@@ -185,6 +185,6 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    let result = count_connected(&input, 10);
+    let result = count_connected(&input, 1000);
     println!("Result: {result}");
 }
