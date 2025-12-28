@@ -2,6 +2,8 @@
 
 use core::num::ParseIntError;
 use core::num::Saturating;
+use std::collections::HashSet;
+use std::fmt::Write;
 use std::{collections::HashMap, env::args, fs, path::Path, process::exit};
 
 use log::debug;
@@ -29,14 +31,10 @@ impl Position3D {
         reason = "As conversion from usize to u64 and from i64 to f64 is safe."
     )]
     fn dist(&self, other: &Self) -> f64 {
-        let (my_x, my_y, my_z) = (Saturating(self.x), Saturating(self.y), Saturating(self.z));
-        let (other_x, other_y, other_z) = (
-            Saturating(other.x),
-            Saturating(other.y),
-            Saturating(other.z),
-        );
-        let square_sum =
-            ((my_x - other_x).pow(2) + (my_y - other_y).pow(2) + (my_z - other_z).pow(2)).0;
+        let square_sum = (self.x.abs_diff(other.x))
+            .pow(2)
+            .saturating_add((self.y.abs_diff(other.y)).pow(2))
+            .saturating_add((self.z.abs_diff(other.z)).pow(2));
         (square_sum as u64 as f64).sqrt()
     }
 }
@@ -78,32 +76,76 @@ fn distance_matrix(positions: &[Position3D]) -> DistanceMatrix<'_> {
             let dist = pos1.dist(pos2);
             map.insert((pos1, pos2), dist);
             map.insert((pos2, pos1), dist);
+            debug!("Distance between {pos1:?} and {pos2:?} is {dist}.");
         }
     }
     map
 }
 
 /// Gets the `num` pairs in `matrix` with the shortest distances to each other
-fn shortest_distance_pairs<'link>(
+fn shortest_distances<'link>(
     matrix: &DistanceMatrix<'link>,
-    num: usize,
 ) -> Vec<(&'link Position3D, &'link Position3D)> {
     let mut positions: Vec<&(&Position3D, &Position3D)> =
         matrix.keys().filter(|&&(pos1, pos2)| pos1 < pos2).collect();
     positions.sort_by(|pair1, pair2| {
         let dist1 = matrix.get(pair1).unwrap_or(&f64::INFINITY);
         let dist2 = matrix.get(pair2).unwrap_or(&f64::INFINITY);
-        debug!("Distance between {pair1:?} is {dist1} and distance between {pair2:?} is {dist2}.");
+        // debug!("Distance between {pair1:?} is {dist1} and distance between {pair2:?} is {dist2}.");
         dist1.total_cmp(dist2)
     });
-    positions.iter().take(num).map(|x| **x).collect()
+    positions.iter().map(|x| **x).collect()
 }
 
 /// Solves part 1 of day 8
-fn count_connected(positions: &[Position3D]) -> usize {
+#[expect(
+    unused_must_use,
+    reason = "The error would only be part of a debug print."
+)]
+fn count_connected(positions: &[Position3D], num: usize) -> usize {
     let distances = distance_matrix(positions);
-    let shortest = shortest_distance_pairs(&distances, 10);
-    info!("10 shortest distances: {shortest:?}");
+    let shortest = shortest_distances(&distances);
+    let mut group_ids: HashMap<&Position3D, usize> = HashMap::new();
+    let mut groups: HashMap<usize, HashSet<&Position3D>> = HashMap::new();
+    let mut connections: usize = 0;
+    for (pos1, pos2) in shortest {
+        let group_id1 = *group_ids.get(pos1).unwrap_or(&connections);
+        let group_id2 = *group_ids.get(pos2).unwrap_or(&connections);
+        // Skip connections within the same group
+        if group_id1 != connections && group_id1 == group_id2 {
+            debug!(
+                "Skipping connection between {pos1:?} and {pos2:?} because both have group ID {group_id1}."
+            );
+            continue;
+        }
+        // Merge groups: All group IDs of group2 have to be set to the ID of group1
+        debug!(
+            "Connecting {pos1:?} and {pos2:?}, merging group {group_id2} into group {group_id2}."
+        );
+        let removed = groups
+            .remove(&group_id2)
+            .unwrap_or_else(|| HashSet::from_iter(vec![pos2]));
+        let mut removed_sorted = removed.iter().collect::<Vec<&&Position3D>>();
+        removed_sorted.sort();
+        let group1_set = groups
+            .entry(group_id1)
+            .or_insert_with(|| HashSet::from_iter(vec![pos1]));
+        for pos_to_update in removed_sorted {
+            group1_set.insert(pos_to_update);
+            group_ids.insert(pos_to_update, group_id1);
+        }
+        connections = connections.saturating_add(1);
+        let sizes = groups.iter().fold(String::new(), |mut acc, (id, grp)| {
+            let grp_len = grp.len();
+            write!(acc, "{id}: {grp_len}, ");
+            acc
+        });
+        debug!("Group sizes: {sizes}");
+        if connections >= num {
+            // Only add `num` connections
+            break;
+        }
+    }
     0
 }
 
@@ -134,6 +176,6 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    let result = count_connected(&input);
+    let result = count_connected(&input, 10);
     println!("Result: {result}");
 }
