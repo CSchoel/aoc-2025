@@ -183,6 +183,6 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    let result = count_connected(&input, 10);
+    let result = count_connected(&input, 1000);
     println!("Result: {result}");
 }
