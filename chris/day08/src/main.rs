@@ -3,7 +3,6 @@
 use core::fmt::Write as _;
 use core::num::ParseIntError;
 use std::collections::{self, HashSet};
-use std::usize;
 use std::{collections::HashMap, env::args, fs, path::Path, process::exit};
 
 use log::debug;
@@ -109,8 +108,8 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
     let mut groups: HashMap<usize, HashSet<&Position3D>> = HashMap::new();
     let mut connections: usize = 0;
     for (pos1, pos2) in shortest {
-        let group_id_1 = *group_ids.get(pos1).unwrap_or(&connections);
-        let group_id_2 = *group_ids.get(pos2).unwrap_or(&connections);
+        let group_id_1 = *group_ids.entry(pos1).or_insert(connections);
+        let group_id_2 = *group_ids.entry(pos2).or_insert(connections);
         // Skip connections within the same group
         if group_id_1 != connections && group_id_1 == group_id_2 {
             debug!(
@@ -118,9 +117,10 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
             );
             continue;
         }
+        debug!("Group ID 1: {group_id_1}, Group ID 2: {group_id_2}, Connections: {connections}");
         // Merge groups: All group IDs of group2 have to be set to the ID of group1
         debug!(
-            "Connecting {pos1:?} and {pos2:?}, merging group {group_id_2} into group {group_id_2}."
+            "Connecting {pos1:?} and {pos2:?}, merging group {group_id_1} into group {group_id_2}."
         );
         let removed = groups
             .remove(&group_id_2)
@@ -183,6 +183,6 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    let result = count_connected(&input, 1000);
+    let result = count_connected(&input, 10);
     println!("Result: {result}");
 }
