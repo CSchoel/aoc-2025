@@ -1,9 +1,9 @@
 //! Solves day 8 of Advent of Code 2025
 
+use core::fmt::Write as _;
 use core::num::ParseIntError;
-use core::num::Saturating;
-use std::collections::HashSet;
-use std::fmt::Write;
+use std::collections::{self, HashSet};
+use std::usize;
 use std::{collections::HashMap, env::args, fs, path::Path, process::exit};
 
 use log::debug;
@@ -39,6 +39,9 @@ impl Position3D {
     }
 }
 
+/// Represents a matrix of distances which can be queried by `Position3D` objects
+type DistanceMatrix<'link> = HashMap<(&'link Position3D, &'link Position3D), f64>;
+
 /// Parses input for day 8
 fn parse_input(content: &str) -> Result<Vec<Position3D>, String> {
     content
@@ -58,9 +61,6 @@ fn parse_input(content: &str) -> Result<Vec<Position3D>, String> {
         })
         .collect()
 }
-
-/// Represents a matrix of distances which can be queried by `Position3D` objects
-type DistanceMatrix<'link> = HashMap<(&'link Position3D, &'link Position3D), f64>;
 
 /// Creates a new distance matrix containing the distances between all given positions
 #[expect(
@@ -109,30 +109,30 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
     let mut groups: HashMap<usize, HashSet<&Position3D>> = HashMap::new();
     let mut connections: usize = 0;
     for (pos1, pos2) in shortest {
-        let group_id1 = *group_ids.get(pos1).unwrap_or(&connections);
-        let group_id2 = *group_ids.get(pos2).unwrap_or(&connections);
+        let group_id_1 = *group_ids.get(pos1).unwrap_or(&connections);
+        let group_id_2 = *group_ids.get(pos2).unwrap_or(&connections);
         // Skip connections within the same group
-        if group_id1 != connections && group_id1 == group_id2 {
+        if group_id_1 != connections && group_id_1 == group_id_2 {
             debug!(
-                "Skipping connection between {pos1:?} and {pos2:?} because both have group ID {group_id1}."
+                "Skipping connection between {pos1:?} and {pos2:?} because both have group ID {group_id_1}."
             );
             continue;
         }
         // Merge groups: All group IDs of group2 have to be set to the ID of group1
         debug!(
-            "Connecting {pos1:?} and {pos2:?}, merging group {group_id2} into group {group_id2}."
+            "Connecting {pos1:?} and {pos2:?}, merging group {group_id_2} into group {group_id_2}."
         );
         let removed = groups
-            .remove(&group_id2)
+            .remove(&group_id_2)
             .unwrap_or_else(|| HashSet::from_iter(vec![pos2]));
         let mut removed_sorted = removed.iter().collect::<Vec<&&Position3D>>();
         removed_sorted.sort();
         let group1_set = groups
-            .entry(group_id1)
+            .entry(group_id_1)
             .or_insert_with(|| HashSet::from_iter(vec![pos1]));
         for pos_to_update in removed_sorted {
             group1_set.insert(pos_to_update);
-            group_ids.insert(pos_to_update, group_id1);
+            group_ids.insert(pos_to_update, group_id_1);
         }
         connections = connections.saturating_add(1);
         let sizes = groups.iter().fold(String::new(), |mut acc, (id, grp)| {
@@ -146,7 +146,14 @@ fn count_connected(positions: &[Position3D], num: usize) -> usize {
             break;
         }
     }
-    0
+    // Get group sizes and multiply the three largest ones.
+    let mut sizes = groups
+        .values()
+        .map(collections::HashSet::len)
+        .collect::<Vec<usize>>();
+    // sort in descending order
+    sizes.sort_by_key(|val| usize::MAX.saturating_sub(*val));
+    sizes.iter().take(3).product()
 }
 
 #[expect(
