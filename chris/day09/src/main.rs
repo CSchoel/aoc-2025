@@ -1,6 +1,37 @@
+//! Solves day 9 of Advent of Code 2025
+use core::num::ParseIntError;
 use std::{env::args, fs, path::Path, process::exit};
 
 use log::info;
+
+/// Represents a 2D carthesian coordinate of a tile
+#[derive(Debug)]
+struct Position2D {
+    /// Position on x-axis
+    x: usize,
+    /// Position on y-axis
+    y: usize,
+}
+
+/// Parses input for day 9
+fn parse_input(content: &str) -> Result<Vec<Position2D>, String> {
+    content
+        .lines()
+        .map(|line| {
+            let Ok(numbers) = line
+                .split(',')
+                .map(str::parse::<usize>)
+                .collect::<Result<Vec<usize>, ParseIntError>>()
+            else {
+                return Err(format!("Could not parse numbers in line {line}"));
+            };
+            let &[x, y] = numbers.as_slice() else {
+                return Err(format!("Wrong number of coordinates: {numbers:?}"));
+            };
+            Ok(Position2D { x, y })
+        })
+        .collect()
+}
 
 #[expect(
     clippy::print_stdout,
