@@ -5,12 +5,22 @@ use std::{env::args, fs, path::Path, process::exit};
 use log::info;
 
 /// Represents a 2D carthesian coordinate of a tile
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Position2D {
     /// Position on x-axis
     x: usize,
     /// Position on y-axis
     y: usize,
+}
+
+impl Position2D {
+    /// Calculates the area that a rectangle between this and another position would span
+    const fn rectangle_area(&self, other: &Self) -> usize {
+        self.x
+            .abs_diff(other.x)
+            .saturating_add(1)
+            .saturating_mul(self.y.abs_diff(other.y).saturating_add(1))
+    }
 }
 
 /// Parses input for day 9
@@ -31,6 +41,24 @@ fn parse_input(content: &str) -> Result<Vec<Position2D>, String> {
             Ok(Position2D { x, y })
         })
         .collect()
+}
+
+/// Solves part 1
+fn largest_rectangle(input: &[Position2D]) -> usize {
+    let mut max_rect: usize = 0;
+    for pos1 in input {
+        for pos2 in input {
+            // Limit comparisons to triangle
+            if pos1 >= pos2 {
+                continue;
+            }
+            max_rect = max_rect.max(pos1.rectangle_area(pos2));
+            info!(
+                "Expamining rectangle between {pos1:?} and {pos2:?}, new maximum area: {max_rect}."
+            );
+        }
+    }
+    max_rect
 }
 
 #[expect(
@@ -60,6 +88,6 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    //let result = count_connected(&input, 1000);
-    println!("Result: TBD");
+    let result = largest_rectangle(&input);
+    println!("Result: {result}");
 }
