@@ -1,8 +1,9 @@
 //! Solves day 12 of Advent of Code 2025
 
-use std::{env::args, fs, path::Path, process::exit};
+use std::{env::args, fs, num::ParseIntError, path::Path, process::exit, usize};
 
 use log::info;
+use regex::{Regex, RegexSet};
 
 /// Represents a present shape
 #[derive(Debug, Clone)]
@@ -13,6 +14,7 @@ struct PresentShape {
 }
 
 /// Represents a region under a tree and the requirements of presents that should be placed there
+#[derive(Debug)]
 struct TreeRegion {
     /// Length of the region
     length: usize,
@@ -26,7 +28,47 @@ struct TreeRegion {
 
 /// Parses input for day 12
 fn parse_input(content: &str) -> Result<Vec<TreeRegion>, String> {
-    Err(format!("Not yet implemented!"))
+    let error_mapper = |err: regex::Error| format!("Internal error: {err:?}");
+    let pat_number = Regex::new(r"\d+\:$").map_err(error_mapper)?;
+    let pat_pixels = Regex::new(r"[#\.]+").map_err(error_mapper)?;
+    let pat_region = Regex::new(r"(\d+)x(\d+)\:\s*((?:\d+\s*)+)").map_err(error_mapper)?;
+    let mut pixels: Vec<Vec<bool>> = Vec::new();
+    let mut present_shapes: Vec<PresentShape> = Vec::new();
+    let mut shape_quantities: Vec<usize> = Vec::new();
+    let mut regions = Vec::new();
+    for line in content.lines() {
+        if let Some(match_region) = pat_region.captures(line) {
+            let (full, [length_str, width_str, quantities]) = match_region.extract();
+            let length = length_str
+                .parse::<usize>()
+                .map_err(|err| format!("Could not parse length. Reason:\n{err:?}"))?;
+            let width = width_str
+                .parse::<usize>()
+                .map_err(|err| format!("Could not parse width. Reason:\n{err:?}"))?;
+            let shape_quantities = quantities
+                .split_ascii_whitespace()
+                .map(str::parse::<usize>)
+                .collect::<Result<Vec<usize>, ParseIntError>>()
+                .map_err(|err| format!("Could not parse shape quantities. Reason:\n{err:?}"))?;
+            regions.push(TreeRegion {
+                length,
+                present_shapes: present_shapes.clone(),
+                shape_quantities,
+                width,
+            });
+        } else if pat_pixels.is_match(line) {
+            let pixel_line = line.chars().map(|chr| chr == '#').collect::<Vec<bool>>();
+            pixels.push(pixel_line);
+        } else {
+            if !pixels.is_empty() {
+                present_shapes.push(PresentShape {
+                    pixels: pixels.clone(),
+                });
+            }
+            pixels = Vec::new();
+        }
+    }
+    Ok(regions)
 }
 
 #[expect(
@@ -48,14 +90,14 @@ fn main() {
             exit(1);
         }
     };
-    // let input = match parse_input(&contents) {
-    //     Ok(inp) => inp,
-    //     Err(err) => {
-    //         eprint!("Could not parse input! Reason:\n{err}");
-    //         exit(1);
-    //     }
-    // };
-    // info!("Parsed input: {input:?}");
+    let input = match parse_input(&contents) {
+        Ok(inp) => inp,
+        Err(err) => {
+            eprint!("Could not parse input! Reason:\n{err}");
+            exit(1);
+        }
+    };
+    info!("Parsed input: {input:?}");
     let result = "TBD";
     println!("Result: {result}");
 }
