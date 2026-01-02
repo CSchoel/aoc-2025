@@ -1,9 +1,10 @@
 //! Solves day 12 of Advent of Code 2025
 
-use std::{env::args, fs, num::ParseIntError, path::Path, process::exit, usize};
+use core::num::ParseIntError;
+use std::{env::args, fs, path::Path, process::exit};
 
 use log::info;
-use regex::{Regex, RegexSet};
+use regex::Regex;
 
 /// Represents a present shape
 #[derive(Debug, Clone)]
@@ -29,16 +30,14 @@ struct TreeRegion {
 /// Parses input for day 12
 fn parse_input(content: &str) -> Result<Vec<TreeRegion>, String> {
     let error_mapper = |err: regex::Error| format!("Internal error: {err:?}");
-    let pat_number = Regex::new(r"\d+\:$").map_err(error_mapper)?;
     let pat_pixels = Regex::new(r"[#\.]+").map_err(error_mapper)?;
     let pat_region = Regex::new(r"(\d+)x(\d+)\:\s*((?:\d+\s*)+)").map_err(error_mapper)?;
     let mut pixels: Vec<Vec<bool>> = Vec::new();
     let mut present_shapes: Vec<PresentShape> = Vec::new();
-    let mut shape_quantities: Vec<usize> = Vec::new();
     let mut regions = Vec::new();
     for line in content.lines() {
         if let Some(match_region) = pat_region.captures(line) {
-            let (full, [length_str, width_str, quantities]) = match_region.extract();
+            let (_, [length_str, width_str, quantities]) = match_region.extract();
             let length = length_str
                 .parse::<usize>()
                 .map_err(|err| format!("Could not parse length. Reason:\n{err:?}"))?;
