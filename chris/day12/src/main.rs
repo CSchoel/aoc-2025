@@ -174,18 +174,20 @@ fn present_fits_in_region_at_pos(
     }
     let Some(region_slice) = region.get(idx_len..idx_len.saturating_add(present.pixels.len()))
     else {
+        debug!("Could not get region slice at length {idx_len}!");
         return false;
     };
     for (present_row, region_row) in present.pixels.iter().zip(region_slice.iter()) {
         let columns = idx_width..idx_width.saturating_add(present_row.len());
         let Some(region_row_slice) = region_row.get(columns.clone()) else {
+            debug!("Could not get region row slice at width {idx_width}!");
             return false;
         };
-        let Some(present_row_slice) = present_row.get(columns) else {
-            return false;
-        };
-        for (present_pixel, region_pixel) in present_row_slice.iter().zip(region_row_slice) {
+        for (present_pixel, region_pixel) in present_row.iter().zip(region_row_slice) {
             if *present_pixel && *region_pixel {
+                debug!(
+                    "Pixel mismatch: present_pixel = {present_pixel}, region_pixel = {region_pixel}"
+                );
                 return false;
             }
         }
@@ -322,6 +324,21 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    let result = input.first().map(TreeRegion::fits_all);
-    println!("Result: {result:?}");
+    let tmp_region = vec![
+        vec![false, false, false, false],
+        vec![true, false, true, false],
+        vec![true, false, true, false],
+        vec![true, true, true, false],
+    ];
+    let tmp_shape = PresentShape {
+        pixels: vec![
+            vec![true, true, true],
+            vec![true, false, true],
+            vec![true, false, true],
+        ],
+    };
+    let fits = present_fits_in_region_at_pos(&tmp_shape, &tmp_region, 0, 1);
+    info!("Test result: {fits}");
+    // let result = input.first().map(TreeRegion::fits_all);
+    // println!("Result: {result:?}");
 }
