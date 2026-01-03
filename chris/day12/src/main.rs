@@ -3,7 +3,7 @@
 use core::num::ParseIntError;
 use std::{clone::Clone, env::args, fs, path::Path, process::exit};
 
-use log::{error, info};
+use log::{debug, error, info};
 use regex::Regex;
 
 /// Represents a present shape
@@ -31,15 +31,15 @@ impl TreeRegion {
     /// Determines whether all presents of the desired shapes can fit into this region
     fn fits_all(&self) -> bool {
         let region: Vec<Vec<bool>> = Vec::new();
-        self.fits_all_in_region(region, self.shape_quantities.clone())
+        self.fits_all_in_region(&region, self.shape_quantities.clone())
     }
     /// Version of `can_fit()` that also accepts a current region for recursive calls.
     fn fits_all_in_region(
         &self,
-        current_region: Vec<Vec<bool>>,
+        current_region: &[Vec<bool>],
         mut remaining_quantities: Vec<usize>,
     ) -> bool {
-        let Some((idx, quant)) = remaining_quantities
+        let Some((idx, _)) = remaining_quantities
             .iter()
             .enumerate()
             .find(|&(_, quant)| *quant > 0)
@@ -58,6 +58,9 @@ impl TreeRegion {
         for idx_length in 0..current_region.len() {
             for idx_width in 0..current_region.first().map_or(0, Vec::len) {
                 if !present_fits_in_region_at_pos(shape, &current_region, idx_length, idx_width) {
+                    debug!(
+                        "Present of type {idx} does not fit into region at ({idx_length}, {idx_width})"
+                    );
                     continue;
                 }
                 info!("Placing present of type {idx} at pos ({idx_length}, {idx_width}).");
@@ -75,7 +78,7 @@ impl TreeRegion {
                     }
                 };
                 // Now check recursively if we reach a solution by placing the present there
-                if self.fits_all_in_region(new_region, remaining_quantities.clone()) {
+                if self.fits_all_in_region(&new_region, remaining_quantities.clone()) {
                     // If yes, we just return.
                     return true;
                 }
@@ -83,6 +86,7 @@ impl TreeRegion {
             }
         }
         // We evaluated all positions but did not find a candidate => Unable to place.
+        info!("Evaluated all positions for present of type {idx}, but found no free position.");
         false
     }
 }
@@ -220,6 +224,6 @@ fn main() {
         }
     };
     info!("Parsed input: {input:?}");
-    let result = "TBD";
-    println!("Result: {result}");
+    let result = input.first().map(TreeRegion::fits_all);
+    println!("Result: {result:?}");
 }
