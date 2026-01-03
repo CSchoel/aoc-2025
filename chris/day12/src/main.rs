@@ -334,6 +334,6 @@ fn main() {
     };
     let fits = present_fits_in_region_at_pos(&tmp_shape, &tmp_region, 0, 1);
     assert!(fits, "Shape should fit here!");
-    let result = input.first().map(TreeRegion::fits_all);
+    let result = input.iter().map(TreeRegion::fits_all).collect::<Vec<_>>();
     println!("Result: {result:?}");
 }
