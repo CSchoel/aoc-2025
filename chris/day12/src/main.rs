@@ -1,9 +1,11 @@
 //! Solves day 12 of Advent of Code 2025
 
+use core::clone::Clone;
+use core::fmt::Debug;
 use core::num::ParseIntError;
-use std::{clone::Clone, env::args, fs, path::Path, process::exit};
+use std::{env::args, fs, path::Path, process::exit};
 
-use log::{debug, error, info};
+use log::{Level, debug, error, info};
 use regex::Regex;
 
 /// Represents a present shape
@@ -51,6 +53,7 @@ impl TreeRegion {
             error!("Could not find shape with index {idx} in {self:?}. This should never happen!");
             return false;
         };
+        let total_remaining: usize = remaining_quantities.iter().sum();
         if let Some(el) = remaining_quantities.get_mut(idx) {
             *el = el.saturating_sub(1);
         }
@@ -59,11 +62,13 @@ impl TreeRegion {
             for idx_width in 0..current_region.first().map_or(0, Vec::len) {
                 if !present_fits_in_region_at_pos(shape, current_region, idx_length, idx_width) {
                     debug!(
-                        "Present of type {idx} does not fit into region at ({idx_length}, {idx_width})"
+                        "Present of type {idx} does not fit into region at ({idx_length}, {idx_width}) with {total_remaining} remaining presents."
                     );
                     continue;
                 }
-                info!("Placing present of type {idx} at pos ({idx_length}, {idx_width}).");
+                info!(
+                    "Placing present of type {idx} at pos ({idx_length}, {idx_width}) with {total_remaining} remaining presents."
+                );
                 // If the present fits, copy the region, and place it there
                 let new_region = match place_present_in_region_at_pos(
                     shape,
@@ -86,7 +91,9 @@ impl TreeRegion {
             }
         }
         // We evaluated all positions but did not find a candidate => Unable to place.
-        info!("Evaluated all positions for present of type {idx}, but found no free position.");
+        info!(
+            "Evaluated all positions for present of type {idx}, but found no free position with {total_remaining} remaining presents."
+        );
         false
     }
 }
@@ -98,6 +105,13 @@ fn present_fits_in_region_at_pos(
     idx_len: usize,
     idx_width: usize,
 ) -> bool {
+    if log::log_enabled!(Level::Debug) {
+        let present_str = print_region(&present.pixels, None);
+        let region_str = print_region(region, Some((idx_len, idx_width)));
+        debug!(
+            "Checking whether package fits in region.\n\nPackage:\n{present_str}\n\nRegion:\n{region_str}"
+        );
+    }
     let Some(region_slice) = region.get(idx_len..idx_len.saturating_add(present.pixels.len()))
     else {
         return false;
@@ -117,6 +131,30 @@ fn present_fits_in_region_at_pos(
         }
     }
     true
+}
+
+/// Prints a region in the same format as used by the exercise description
+fn print_region(pixels: &[Vec<bool>], mark_position: Option<(usize, usize)>) -> String {
+    let (mark_len, mark_wid) = mark_position.unwrap_or((usize::MAX, usize::MAX));
+    pixels
+        .iter()
+        .enumerate()
+        .map(|(idx_len, len_slice)| {
+            let mut len_slice_str = len_slice
+                .iter()
+                .enumerate()
+                .map(|(idx_wid, pix)| {
+                    if idx_len == mark_len && idx_wid == mark_wid {
+                        if *pix { 'X' } else { 'x' }
+                    } else {
+                        if *pix { '#' } else { '.' }
+                    }
+                })
+                .collect::<String>();
+            len_slice_str.push('\n');
+            len_slice_str
+        })
+        .collect::<String>()
 }
 
 /// Places present `present` into position (`idx_len`, `idx_width`) in `region`.
