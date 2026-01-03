@@ -1,9 +1,9 @@
 //! Solves day 12 of Advent of Code 2025
 
 use core::num::ParseIntError;
-use std::{env::args, fs, path::Path, process::exit};
+use std::{clone::Clone, env::args, fs, path::Path, process::exit};
 
-use log::info;
+use log::{error, info};
 use regex::Regex;
 
 /// Represents a present shape
@@ -27,6 +27,129 @@ struct TreeRegion {
     width: usize,
 }
 
+impl TreeRegion {
+    /// Determines whether all presents of the desired shapes can fit into this region
+    fn fits_all(&self) -> bool {
+        let region: Vec<Vec<bool>> = Vec::new();
+        self.fits_all_in_region(region, self.shape_quantities.clone())
+    }
+    /// Version of `can_fit()` that also accepts a current region for recursive calls.
+    fn fits_all_in_region(
+        &self,
+        current_region: Vec<Vec<bool>>,
+        mut remaining_quantities: Vec<usize>,
+    ) -> bool {
+        let Some((idx, quant)) = remaining_quantities
+            .iter()
+            .enumerate()
+            .find(|&(_, quant)| *quant > 0)
+        else {
+            // We've placed all presents => We found a solution!
+            return true;
+        };
+        let Some(shape) = self.present_shapes.get(idx) else {
+            error!("Could not find shape with index {idx} in {self:?}. This should never happen!");
+            return false;
+        };
+        if let Some(el) = remaining_quantities.get_mut(idx) {
+            *el = el.saturating_sub(1);
+        }
+        // Iterate over all free positions and try placing the present there
+        for idx_length in 0..current_region.len() {
+            for idx_width in 0..current_region.first().map_or(0, Vec::len) {
+                if !present_fits_in_region_at_pos(shape, &current_region, idx_length, idx_width) {
+                    continue;
+                }
+                info!("Placing present of type {idx} at pos ({idx_length}, {idx_width}).");
+                // If the present fits, copy the region, and place it there
+                let new_region = match place_present_in_region_at_pos(
+                    shape,
+                    &current_region,
+                    idx_length,
+                    idx_width,
+                ) {
+                    Ok(reg) => reg,
+                    Err(err) => {
+                        error!("Could not place present in region. Reason:\n{err}");
+                        return false;
+                    }
+                };
+                // Now check recursively if we reach a solution by placing the present there
+                if self.fits_all_in_region(new_region, remaining_quantities.clone()) {
+                    // If yes, we just return.
+                    return true;
+                }
+                // If no, we continue to evaluate different positions.
+            }
+        }
+        // We evaluated all positions but did not find a candidate => Unable to place.
+        false
+    }
+}
+
+/// Checks whether the present `present` fits into `region` at index (`idx_len`, `idx_width`)
+fn present_fits_in_region_at_pos(
+    present: &PresentShape,
+    region: &[Vec<bool>],
+    idx_len: usize,
+    idx_width: usize,
+) -> bool {
+    let Some(region_slice) = region.get(idx_len..idx_len.saturating_add(present.pixels.len()))
+    else {
+        return false;
+    };
+    for (present_row, region_row) in present.pixels.iter().zip(region_slice.iter()) {
+        let columns = idx_width..idx_width.saturating_add(present_row.len());
+        let Some(region_row_slice) = region_row.get(columns.clone()) else {
+            return false;
+        };
+        let Some(present_row_slice) = present_row.get(columns) else {
+            return false;
+        };
+        for (present_pixel, region_pixel) in present_row_slice.iter().zip(region_row_slice) {
+            if *present_pixel && *region_pixel {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+/// Places present `present` into position (`idx_len`, `idx_width`) in `region`.
+fn place_present_in_region_at_pos(
+    present: &PresentShape,
+    region: &[Vec<bool>],
+    idx_len: usize,
+    idx_width: usize,
+) -> Result<Vec<Vec<bool>>, String> {
+    let mut region_copy = region.iter().map(Clone::clone).collect::<Vec<Vec<bool>>>();
+    let Some(region_slice) =
+        region_copy.get_mut(idx_len..idx_len.saturating_add(present.pixels.len()))
+    else {
+        return Err(format!(
+            "Could not access length slice at {idx_len} of region!"
+        ));
+    };
+    for (present_row, region_row) in present.pixels.iter().zip(region_slice.iter_mut()) {
+        let columns = idx_width..idx_width.saturating_add(present_row.len());
+        let Some(region_row_slice) = region_row.get_mut(columns.clone()) else {
+            return Err(format!(
+                "Could not access width slice at {idx_width} of region!"
+            ));
+        };
+        let Some(present_row_slice) = present_row.get(columns) else {
+            return Err(format!(
+                "Could not access width slice at {idx_width} of present!"
+            ));
+        };
+        for (present_pixel, region_pixel) in present_row_slice.iter().zip(region_row_slice) {
+            if *present_pixel {
+                *region_pixel = true;
+            }
+        }
+    }
+    Ok(region_copy)
+}
 /// Parses input for day 12
 fn parse_input(content: &str) -> Result<Vec<TreeRegion>, String> {
     let error_mapper = |err: regex::Error| format!("Internal error: {err:?}");
