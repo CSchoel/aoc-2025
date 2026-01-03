@@ -10,7 +10,7 @@ use regex::Regex;
 #[derive(Debug, Clone)]
 struct PresentShape {
     /// The pixels occupied by the present
-    /// Outer index is width, inner index is length
+    /// Outer index is length, inner index is width
     pixels: Vec<Vec<bool>>,
 }
 
@@ -37,7 +37,7 @@ fn parse_input(content: &str) -> Result<Vec<TreeRegion>, String> {
     let mut regions = Vec::new();
     for line in content.lines() {
         if let Some(match_region) = pat_region.captures(line) {
-            let (_, [length_str, width_str, quantities]) = match_region.extract();
+            let (_, [width_str, length_str, quantities]) = match_region.extract();
             let length = length_str
                 .parse::<usize>()
                 .map_err(|err| format!("Could not parse length. Reason:\n{err:?}"))?;
