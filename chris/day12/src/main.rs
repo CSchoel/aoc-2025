@@ -3,17 +3,70 @@
 use core::clone::Clone;
 use core::fmt::Debug;
 use core::num::ParseIntError;
-use std::{env::args, fs, path::Path, process::exit};
+use std::{collections::HashSet, env::args, fs, iter::repeat, path::Path, process::exit};
 
 use log::{Level, debug, error, info};
 use regex::Regex;
 
 /// Represents a present shape
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct PresentShape {
     /// The pixels occupied by the present
     /// Outer index is length, inner index is width
     pixels: Vec<Vec<bool>>,
+}
+
+impl PresentShape {
+    /// Returns all different shapes that can be obtained by rotating and flipping this shape
+    fn orientations(&self) -> Vec<Self> {
+        let mut oris: HashSet<Self> = HashSet::new();
+        for flip in [
+            self.clone(),
+            self.flip_lengthwise(),
+            self.flip_widthwise(),
+            self.flip_lengthwise().flip_widthwise(),
+        ] {
+            for rot in [
+                flip.rotate_clockwise(),
+                flip.rotate_clockwise().rotate_clockwise(),
+                flip.rotate_clockwise()
+                    .rotate_clockwise()
+                    .rotate_clockwise(),
+            ] {
+                oris.insert(rot);
+            }
+        }
+        oris.into_iter().collect::<Vec<Self>>()
+    }
+    /// Flips the shape along the length axis
+    fn flip_lengthwise(&self) -> Self {
+        Self {
+            pixels: self.pixels.iter().rev().map(Clone::clone).collect(),
+        }
+    }
+    /// Flips the shape along the width axis
+    fn flip_widthwise(&self) -> Self {
+        Self {
+            pixels: self
+                .pixels
+                .iter()
+                .map(|len_slice| len_slice.iter().rev().copied().collect::<Vec<bool>>())
+                .collect(),
+        }
+    }
+    /// Rotates the shape clockwise (interpreting length als y-axis and width as x-axis)
+    fn rotate_clockwise(&self) -> Self {
+        let mut new_pixels: Vec<Vec<bool>> = Vec::new();
+        for len_slice in self.pixels.iter().rev() {
+            while new_pixels.len() < len_slice.len() {
+                new_pixels.push(Vec::new());
+            }
+            for (val, vect) in len_slice.iter().zip(new_pixels.iter_mut()) {
+                vect.push(*val);
+            }
+        }
+        Self { pixels: new_pixels }
+    }
 }
 
 /// Represents a region under a tree and the requirements of presents that should be placed there
@@ -57,10 +110,17 @@ impl TreeRegion {
         if let Some(el) = remaining_quantities.get_mut(idx) {
             *el = el.saturating_sub(1);
         }
+        let orientations = shape.orientations();
         // Iterate over all free positions and try placing the present there
-        for idx_length in 0..current_region.len() {
-            for idx_width in 0..current_region.first().map_or(0, Vec::len) {
-                if !present_fits_in_region_at_pos(shape, current_region, idx_length, idx_width) {
+        let indices = (0..self.length).flat_map(|idxl| repeat(idxl).zip(0..self.width));
+        for (idx_length, idx_width) in indices {
+            for orientation in &orientations {
+                if !present_fits_in_region_at_pos(
+                    orientation,
+                    current_region,
+                    idx_length,
+                    idx_width,
+                ) {
                     debug!(
                         "Present of type {idx} does not fit into region at ({idx_length}, {idx_width}) with {total_remaining} remaining presents."
                     );
@@ -71,7 +131,7 @@ impl TreeRegion {
                 );
                 // If the present fits, copy the region, and place it there
                 let new_region = match place_present_in_region_at_pos(
-                    shape,
+                    orientation,
                     current_region,
                     idx_length,
                     idx_width,
