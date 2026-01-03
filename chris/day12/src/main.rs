@@ -30,7 +30,7 @@ struct TreeRegion {
 impl TreeRegion {
     /// Determines whether all presents of the desired shapes can fit into this region
     fn fits_all(&self) -> bool {
-        let region: Vec<Vec<bool>> = Vec::new();
+        let region: Vec<Vec<bool>> = vec![vec![false; self.width]; self.length];
         self.fits_all_in_region(&region, self.shape_quantities.clone())
     }
     /// Version of `can_fit()` that also accepts a current region for recursive calls.
@@ -57,7 +57,7 @@ impl TreeRegion {
         // Iterate over all free positions and try placing the present there
         for idx_length in 0..current_region.len() {
             for idx_width in 0..current_region.first().map_or(0, Vec::len) {
-                if !present_fits_in_region_at_pos(shape, &current_region, idx_length, idx_width) {
+                if !present_fits_in_region_at_pos(shape, current_region, idx_length, idx_width) {
                     debug!(
                         "Present of type {idx} does not fit into region at ({idx_length}, {idx_width})"
                     );
@@ -67,7 +67,7 @@ impl TreeRegion {
                 // If the present fits, copy the region, and place it there
                 let new_region = match place_present_in_region_at_pos(
                     shape,
-                    &current_region,
+                    current_region,
                     idx_length,
                     idx_width,
                 ) {
