@@ -241,12 +241,7 @@ fn place_present_in_region_at_pos(
                 "Could not access width slice at {idx_width} of region!"
             ));
         };
-        let Some(present_row_slice) = present_row.get(columns) else {
-            return Err(format!(
-                "Could not access width slice at {idx_width} of present!"
-            ));
-        };
-        for (present_pixel, region_pixel) in present_row_slice.iter().zip(region_row_slice) {
+        for (present_pixel, region_pixel) in present_row.iter().zip(region_row_slice) {
             if *present_pixel {
                 *region_pixel = true;
             }
@@ -338,7 +333,7 @@ fn main() {
         ],
     };
     let fits = present_fits_in_region_at_pos(&tmp_shape, &tmp_region, 0, 1);
-    info!("Test result: {fits}");
-    // let result = input.first().map(TreeRegion::fits_all);
-    // println!("Result: {result:?}");
+    assert!(fits, "Shape should fit here!");
+    let result = input.first().map(TreeRegion::fits_all);
+    println!("Result: {result:?}");
 }
