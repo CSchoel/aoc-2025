@@ -396,6 +396,13 @@ fn parse_input(content: &str) -> Result<Vec<TreeRegion>, String> {
     Ok(regions)
 }
 
+/// Solves part 1 by counting all regions that are solvable
+fn count_solvable(regions: &[TreeRegion]) -> usize {
+    let solvable = regions.iter().map(TreeRegion::fits_all).collect::<Vec<_>>();
+    info!("Solvable states: {solvable:?}");
+    solvable.iter().copied().map(usize::from).sum()
+}
+
 #[expect(
     clippy::print_stdout,
     clippy::print_stderr,
@@ -438,6 +445,6 @@ fn main() {
     };
     let fits = present_fits_in_region_at_pos(&tmp_shape, &tmp_region, 0, 1);
     assert!(fits, "Shape should fit here!");
-    let result = input.iter().map(TreeRegion::fits_all).collect::<Vec<_>>();
-    println!("Result: {result:?}");
+    let result = count_solvable(&input);
+    println!("Result: {result}");
 }
