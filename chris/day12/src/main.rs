@@ -99,6 +99,8 @@ impl TreeRegion {
             .find(|&(_, quant)| *quant > 0)
         else {
             // We've placed all presents => We found a solution!
+            let current_region_str = print_region(current_region, None);
+            info!("Found a solution:\n{current_region_str}");
             return true;
         };
         let Some(shape) = self.present_shapes.get(idx) else {
@@ -125,7 +127,7 @@ impl TreeRegion {
                     );
                     continue;
                 }
-                info!(
+                debug!(
                     "Placing present of type {idx} at pos ({idx_length}, {idx_width}) with {total_remaining} remaining presents."
                 );
                 // If the present fits, copy the region, and place it there
@@ -160,7 +162,7 @@ impl TreeRegion {
             }
         }
         // We evaluated all positions but did not find a candidate => Unable to place.
-        info!(
+        debug!(
             "Evaluated all positions for present of type {idx}, but found no free position with {total_remaining} remaining presents."
         );
         // Record impossibility of current state
