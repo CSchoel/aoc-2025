@@ -80,14 +80,19 @@ impl TreeRegion {
     /// Determines whether all presents of the desired shapes can fit into this region
     fn fits_all(&self) -> bool {
         let region: Pixels = vec![vec![false; self.width]; self.length];
-        self.fits_all_in_region(&region, self.shape_quantities.clone())
+        self.fits_all_in_region(&region, self.shape_quantities.clone(), &mut HashSet::new())
     }
     /// Version of `can_fit()` that also accepts a current region for recursive calls.
     fn fits_all_in_region(
         &self,
         current_region: &[Vec<bool>],
         mut remaining_quantities: Vec<usize>,
+        known_impossible: &mut HashSet<Pixels>,
     ) -> bool {
+        if known_impossible.contains(current_region) {
+            // We already know that there is no solution for this state
+            return false;
+        }
         let Some((idx, _)) = remaining_quantities
             .iter()
             .enumerate()
@@ -137,17 +142,33 @@ impl TreeRegion {
                     }
                 };
                 // Now check recursively if we reach a solution by placing the present there
-                if self.fits_all_in_region(&new_region, remaining_quantities.clone()) {
+                if self.fits_all_in_region(
+                    &new_region,
+                    remaining_quantities.clone(),
+                    known_impossible,
+                ) {
                     // If yes, we just return.
                     return true;
                 }
                 // If no, we continue to evaluate different positions.
+                // But we first save our knowledge that this state did not lead to a solution
+                known_impossible.insert(new_region.clone());
+                // Also add variants
+                known_impossible.insert(flip_lengthwise(&new_region));
+                known_impossible.insert(flip_widthwise(&new_region));
+                known_impossible.insert(flip_lengthwise(&flip_widthwise(&new_region)));
             }
         }
         // We evaluated all positions but did not find a candidate => Unable to place.
         info!(
             "Evaluated all positions for present of type {idx}, but found no free position with {total_remaining} remaining presents."
         );
+        // Record impossibility of current state
+        let current_region_copy = current_region.to_vec();
+        known_impossible.insert(current_region_copy.clone());
+        known_impossible.insert(flip_lengthwise(&current_region_copy));
+        known_impossible.insert(flip_widthwise(&current_region_copy));
+        known_impossible.insert(flip_lengthwise(&flip_widthwise(&current_region_copy)));
         false
     }
 }
