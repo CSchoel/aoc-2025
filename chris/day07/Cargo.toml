@@ -35,3 +35,4 @@ separated_literal_suffix = "allow"  # otherwise clippy complains about both non-
 question_mark_used = "allow"  # again, this is just a convention where we have to decide for one side
 pub_with_shorthand = "allow"
 blanket_clippy_restriction_lints = "allow" # we are being pedantic for the sake of learning here
+iter_over_hash_type = "allow"  # it's very unwieldy to create a sorted vec of keys each time

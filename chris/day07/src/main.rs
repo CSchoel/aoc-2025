@@ -7,10 +7,10 @@ use log::info;
 /// Represents a tachyon manifold
 #[derive(Debug)]
 struct TachyonManifold {
-    /// Starting column
-    start_pos: usize,
     /// Splitter positions per row, starting from the top
     splitter_positions: Vec<HashSet<usize>>,
+    /// Starting column
+    start_pos: usize,
 }
 
 /// Parses input string containing of a single line marking a starting position ('S')
@@ -39,11 +39,12 @@ fn parse_input(content: &str) -> TachyonManifold {
     }
 
     TachyonManifold {
-        start_pos,
         splitter_positions,
+        start_pos,
     }
 }
 
+/// Counts the number of splits that the beam will encounter
 fn count_splits(input: &TachyonManifold) -> usize {
     let mut beam_columns: HashSet<usize> = HashSet::new();
     let mut split: usize = 0;
@@ -51,9 +52,9 @@ fn count_splits(input: &TachyonManifold) -> usize {
     for splitters in &input.splitter_positions {
         // compare beam positions with splitters
         let mut new_beam_columns = HashSet::new();
-        for beam_index in beam_columns.iter() {
+        for beam_index in &beam_columns {
             if splitters.contains(beam_index) {
-                split += 1;
+                split = split.saturating_add(1);
                 new_beam_columns.insert(beam_index.saturating_sub(1));
                 new_beam_columns.insert(beam_index.saturating_add(1));
             } else {
