@@ -79,8 +79,21 @@ struct TreeRegion {
 impl TreeRegion {
     /// Determines whether all presents of the desired shapes can fit into this region
     fn fits_all(&self) -> bool {
+        if self.is_trivial_negative() {
+            info!("Found trivial negative!");
+            return false;
+        }
+        if self.is_trivial_positive() {
+            info!("Found trivial positive!");
+            return true;
+        }
         let region: Pixels = vec![vec![false; self.width]; self.length];
-        self.fits_all_in_region(&region, self.shape_quantities.clone(), &mut HashSet::new())
+        let res =
+            self.fits_all_in_region(&region, self.shape_quantities.clone(), &mut HashSet::new());
+        if !res {
+            info!("Found region to be unsolvable after trying all combinations!");
+        }
+        res
     }
     /// Version of `can_fit()` that also accepts a current region for recursive calls.
     fn fits_all_in_region(
@@ -172,6 +185,51 @@ impl TreeRegion {
         known_impossible.insert(flip_widthwise(&current_region_copy));
         known_impossible.insert(flip_lengthwise(&flip_widthwise(&current_region_copy)));
         false
+    }
+    /// Checks whether this region is a trivial negative that can't fit all presents
+    /// This is the case if the number of spaces that would need to be filled by the presents
+    /// is strictly higher than the number of spaces available in the region.
+    fn is_trivial_negative(&self) -> bool {
+        let available = self.length.saturating_mul(self.width);
+        let required = self
+            .shape_quantities
+            .iter()
+            .zip(self.present_shapes.iter())
+            .map(|(count, shape)| {
+                count.saturating_mul(
+                    shape
+                        .pixels
+                        .iter()
+                        .map(|len_slice| {
+                            len_slice
+                                .iter()
+                                .map(|pixel| usize::from(*pixel))
+                                .sum::<usize>()
+                        })
+                        .sum(),
+                )
+            })
+            .sum();
+        available < required
+    }
+    /// Checks whether this region is a trivial positive that can fit all presents
+    /// This is the case if the presents can be fit into the region without interlocking any of
+    /// them within the area of another present.
+    fn is_trivial_positive(&self) -> bool {
+        let available = self.length.saturating_mul(self.width);
+        let required =
+            self.shape_quantities
+                .iter()
+                .zip(self.present_shapes.iter())
+                .map(|(count, shape)| {
+                    count.saturating_mul(
+                        shape.pixels.len().saturating_mul(
+                            shape.pixels.first().cloned().unwrap_or_default().len(),
+                        ),
+                    )
+                })
+                .sum();
+        available >= required
     }
 }
 
