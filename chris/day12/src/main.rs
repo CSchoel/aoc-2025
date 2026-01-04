@@ -2,21 +2,37 @@
 
 use core::clone::Clone;
 use core::fmt::Debug;
+use core::iter::repeat;
 use core::num::ParseIntError;
-use std::{collections::HashSet, env::args, fs, iter::repeat, path::Path, process::exit};
+use std::{collections::HashSet, env::args, fs, path::Path, process::exit};
 
 use log::{Level, debug, error, info};
 use regex::Regex;
+
+/// State of a region
+type Pixels = Vec<Vec<bool>>;
 
 /// Represents a present shape
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct PresentShape {
     /// The pixels occupied by the present
     /// Outer index is length, inner index is width
-    pixels: Vec<Vec<bool>>,
+    pixels: Pixels,
 }
 
 impl PresentShape {
+    /// Flips the shape along the length axis
+    fn flip_lengthwise(&self) -> Self {
+        Self {
+            pixels: flip_lengthwise(&self.pixels),
+        }
+    }
+    /// Flips the shape along the width axis
+    fn flip_widthwise(&self) -> Self {
+        Self {
+            pixels: flip_widthwise(&self.pixels),
+        }
+    }
     /// Returns all different shapes that can be obtained by rotating and flipping this shape
     fn orientations(&self) -> Vec<Self> {
         let mut oris: HashSet<Self> = HashSet::new();
@@ -38,34 +54,12 @@ impl PresentShape {
         }
         oris.into_iter().collect::<Vec<Self>>()
     }
-    /// Flips the shape along the length axis
-    fn flip_lengthwise(&self) -> Self {
-        Self {
-            pixels: self.pixels.iter().rev().map(Clone::clone).collect(),
-        }
-    }
-    /// Flips the shape along the width axis
-    fn flip_widthwise(&self) -> Self {
-        Self {
-            pixels: self
-                .pixels
-                .iter()
-                .map(|len_slice| len_slice.iter().rev().copied().collect::<Vec<bool>>())
-                .collect(),
-        }
-    }
+
     /// Rotates the shape clockwise (interpreting length als y-axis and width as x-axis)
     fn rotate_clockwise(&self) -> Self {
-        let mut new_pixels: Vec<Vec<bool>> = Vec::new();
-        for len_slice in self.pixels.iter().rev() {
-            while new_pixels.len() < len_slice.len() {
-                new_pixels.push(Vec::new());
-            }
-            for (val, vect) in len_slice.iter().zip(new_pixels.iter_mut()) {
-                vect.push(*val);
-            }
+        Self {
+            pixels: rotate_clockwise(&self.pixels),
         }
-        Self { pixels: new_pixels }
     }
 }
 
@@ -85,7 +79,7 @@ struct TreeRegion {
 impl TreeRegion {
     /// Determines whether all presents of the desired shapes can fit into this region
     fn fits_all(&self) -> bool {
-        let region: Vec<Vec<bool>> = vec![vec![false; self.width]; self.length];
+        let region: Pixels = vec![vec![false; self.width]; self.length];
         self.fits_all_in_region(&region, self.shape_quantities.clone())
     }
     /// Version of `can_fit()` that also accepts a current region for recursive calls.
@@ -158,6 +152,33 @@ impl TreeRegion {
     }
 }
 
+/// Flips the shape along the length axis
+fn flip_lengthwise(pixels: &Pixels) -> Pixels {
+    pixels.iter().rev().map(Clone::clone).collect()
+}
+
+/// Flips the shape along the width axis
+fn flip_widthwise(pixels: &Pixels) -> Pixels {
+    pixels
+        .iter()
+        .map(|len_slice| len_slice.iter().rev().copied().collect::<Vec<bool>>())
+        .collect()
+}
+
+/// Rotates the shape clockwise (interpreting length als y-axis and width as x-axis)
+fn rotate_clockwise(pixels: &Pixels) -> Pixels {
+    let mut new_pixels: Pixels = Vec::new();
+    for len_slice in pixels.iter().rev() {
+        while new_pixels.len() < len_slice.len() {
+            new_pixels.push(Vec::new());
+        }
+        for (val, vect) in len_slice.iter().zip(new_pixels.iter_mut()) {
+            vect.push(*val);
+        }
+    }
+    new_pixels
+}
+
 /// Checks whether the present `present` fits into `region` at index (`idx_len`, `idx_width`)
 fn present_fits_in_region_at_pos(
     present: &PresentShape,
@@ -208,8 +229,10 @@ fn print_region(pixels: &[Vec<bool>], mark_position: Option<(usize, usize)>) -> 
                 .map(|(idx_wid, pix)| {
                     if idx_len == mark_len && idx_wid == mark_wid {
                         if *pix { 'X' } else { 'x' }
+                    } else if *pix {
+                        '#'
                     } else {
-                        if *pix { '#' } else { '.' }
+                        '.'
                     }
                 })
                 .collect::<String>();
@@ -225,8 +248,8 @@ fn place_present_in_region_at_pos(
     region: &[Vec<bool>],
     idx_len: usize,
     idx_width: usize,
-) -> Result<Vec<Vec<bool>>, String> {
-    let mut region_copy = region.iter().map(Clone::clone).collect::<Vec<Vec<bool>>>();
+) -> Result<Pixels, String> {
+    let mut region_copy = region.iter().map(Clone::clone).collect::<Pixels>();
     let Some(region_slice) =
         region_copy.get_mut(idx_len..idx_len.saturating_add(present.pixels.len()))
     else {
@@ -254,7 +277,7 @@ fn parse_input(content: &str) -> Result<Vec<TreeRegion>, String> {
     let error_mapper = |err: regex::Error| format!("Internal error: {err:?}");
     let pat_pixels = Regex::new(r"[#\.]+").map_err(error_mapper)?;
     let pat_region = Regex::new(r"(\d+)x(\d+)\:\s*((?:\d+\s*)+)").map_err(error_mapper)?;
-    let mut pixels: Vec<Vec<bool>> = Vec::new();
+    let mut pixels: Pixels = Vec::new();
     let mut present_shapes: Vec<PresentShape> = Vec::new();
     let mut regions = Vec::new();
     for line in content.lines() {
