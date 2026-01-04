@@ -73,7 +73,7 @@ fn count_splits(input: &TachyonManifold) -> usize {
 }
 
 /// Counts the number of possible realities (part 2)
-//#[expect(unused, reason = "This is the old naive version of part 2.")]
+#[expect(dead_code, reason = "This is the old naive version of part 2.")]
 fn count_realities(input: &TachyonManifold, beam_x: usize, beam_y: usize) -> usize {
     if beam_y == input.splitter_positions.len() {
         // We've reached the end of the tachyon manifold, there is only one timeline here
