@@ -55,7 +55,7 @@ impl PresentShape {
         oris.into_iter().collect::<Vec<Self>>()
     }
 
-    /// Rotates the shape clockwise (interpreting length als y-axis and width as x-axis)
+    /// Rotates the shape clockwise (interpreting length as y-axis and width as x-axis)
     fn rotate_clockwise(&self) -> Self {
         Self {
             pixels: rotate_clockwise(&self.pixels),
@@ -246,7 +246,7 @@ fn flip_widthwise(pixels: &Pixels) -> Pixels {
         .collect()
 }
 
-/// Rotates the shape clockwise (interpreting length als y-axis and width as x-axis)
+/// Rotates the shape clockwise (interpreting length as y-axis and width as x-axis)
 fn rotate_clockwise(pixels: &Pixels) -> Pixels {
     let mut new_pixels: Pixels = Vec::new();
     for len_slice in pixels.iter().rev() {

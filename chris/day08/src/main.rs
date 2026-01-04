@@ -8,7 +8,7 @@ use std::{collections::HashMap, env::args, fs, path::Path, process::exit};
 use log::debug;
 use log::info;
 
-/// Represents a position in 3D carthesian coordinates
+/// Represents a position in 3D Cartesian coordinates
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 struct Position3D {
     /// Position on x axis

@@ -4,7 +4,7 @@ use std::{env::args, fs, path::Path, process::exit};
 
 use log::info;
 
-/// Represents a 2D carthesian coordinate of a tile
+/// Represents a 2D Cartesian coordinate of a tile
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Position2D {
     /// Position on x-axis
@@ -54,7 +54,7 @@ fn largest_rectangle(input: &[Position2D]) -> usize {
             }
             max_rect = max_rect.max(pos1.rectangle_area(pos2));
             info!(
-                "Expamining rectangle between {pos1:?} and {pos2:?}, new maximum area: {max_rect}."
+                "Examining rectangle between {pos1:?} and {pos2:?}, new maximum area: {max_rect}."
             );
         }
     }
