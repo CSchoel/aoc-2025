@@ -1,8 +1,14 @@
 //! Solves day 7 of Advent of code 2025
 
-use std::{collections::HashSet, env::args, fs, path::Path, process::exit};
+use std::{
+    collections::{HashMap, HashSet},
+    env::args,
+    fs,
+    path::Path,
+    process::exit,
+};
 
-use log::info;
+use log::{debug, info};
 
 /// Represents a tachyon manifold
 #[derive(Debug)]
@@ -66,6 +72,57 @@ fn count_splits(input: &TachyonManifold) -> usize {
     split
 }
 
+/// Counts the number of possible realities (part 2)
+#[expect(dead_code, reason = "This is the old naive version of part 2.")]
+fn count_realities(input: &TachyonManifold, beam_x: usize, beam_y: usize) -> usize {
+    if beam_y == input.splitter_positions.len() {
+        // We've reached the end of the tachyon manifold, there is only one timeline here
+        return 1;
+    }
+    let empty_set = &HashSet::new();
+    let splitters = input.splitter_positions.get(beam_y).unwrap_or(empty_set);
+    debug!("Checking for split: splitters = {splitters:?}, beam_x = {beam_x}.");
+    if splitters.contains(&beam_x) {
+        info!("Splitting timeline at ({beam_x}, {beam_y})");
+        // Beam will be split => We split into two different timelines
+        let left_realities =
+            count_realities(input, beam_x.saturating_sub(1), beam_y.saturating_add(1));
+        let right_realities =
+            count_realities(input, beam_x.saturating_add(1), beam_y.saturating_add(1));
+        return left_realities.saturating_add(right_realities);
+    }
+    // Beam is not split, just continue
+    count_realities(input, beam_x, beam_y.saturating_add(1))
+}
+
+/// Counts the number of possible realities (part 2) without explicitly creating them
+fn count_realities_smart(input: &TachyonManifold) -> usize {
+    let mut beam_realities: HashMap<usize, usize> = HashMap::new();
+    beam_realities.insert(input.start_pos, 1);
+    for splitters in &input.splitter_positions {
+        // compare beam positions with splitters
+        let mut new_beam_realities = HashMap::new();
+        for (beam_index, parent_realities) in &beam_realities {
+            let continuations = if splitters.contains(beam_index) {
+                vec![beam_index.saturating_add(1), beam_index.saturating_sub(1)]
+            } else {
+                vec![*beam_index]
+            };
+            for cont in continuations {
+                // Add parent realities to continuations
+                new_beam_realities
+                    .entry(cont)
+                    .and_modify(|realities: &mut usize| {
+                        *realities = realities.saturating_add(*parent_realities);
+                    })
+                    .or_insert(*parent_realities);
+            }
+        }
+        beam_realities = new_beam_realities;
+    }
+    beam_realities.values().sum()
+}
+
 #[expect(
     clippy::print_stdout,
     clippy::print_stderr,
@@ -87,6 +144,8 @@ fn main() {
     };
     let input = parse_input(&contents);
     info!("Parsed input: {input:?}");
-    let result = count_splits(&input);
-    println!("Result: {result}");
+    let result_part1 = count_splits(&input);
+    println!("Number of splits: {result_part1}");
+    let result_part2 = count_realities_smart(&input);
+    println!("Number of realities: {result_part2}");
 }
